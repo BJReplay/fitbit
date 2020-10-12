@@ -1,6 +1,6 @@
 <?php 
     //below  will give the whole connectionstring in a single string
-    $conn = getenv("MYSQLCONNSTR_localdb"); 
+    $conn = getenv("MYSQLCONNSTR_bsheartrate"); 
 
     //Let's split it and decorate it in an array
     $conarr2 = explode(";",$conn); 
