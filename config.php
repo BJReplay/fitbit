@@ -7,7 +7,7 @@ include_once("functions.php");
 $host = "dbhost"; // MySQL Hostname
 $user = "dbuser"; // MySQL Username
 $pass = "dbpassword"; // MySQL Password
-$dbname = "dbname"; // MySQL DB Name
+$dbname = "bsheartrate"; // MySQL DB Name
 
 //below  will give the whole connectionstring in a single string
 $conn = getenv("MYSQLCONNSTR_localdb"); 
@@ -19,6 +19,10 @@ foreach($conarr2 as $key=>$value){
     $k = substr($value,0,strpos($value,'='));
     $conarr[$k] = substr($value,strpos($value,'=')+1);
 }
+
+$host = $connarr["Data Source"]; // MySQL Hostname
+$user = $connarr["User Id"]; // MySQL Username
+$pass = $connarr["Password"]; // MySQL Password
 
 // Other Configuration Parameters
 
@@ -34,7 +38,7 @@ $config_api_url = "https://api.fitbit.com/1/user/-/activities/heart/date"; // pl
 
 // Connecting to Database
 //$config_conn = mysqli_connect("$host","$user","$pass","$dbname");
-$config_conn = mysqli_connect("$connarr['Data Source']","$connarr['User Id']","$connarr['Password']","bsheartrate");
+$config_conn = mysqli_connect($connarr["Data Source"],$connarr["User Id"],$connarr["Password"],"bsheartrate");
 
 if (!$config_conn) { exit("No MySQL Connection Established.<BR><BR>" . mysqli_error($config_conn)); }
 
