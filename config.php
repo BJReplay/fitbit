@@ -37,8 +37,8 @@ $config_api_url = "https://api.fitbit.com/1/user/-/activities/heart/date"; // pl
 
 
 // Connecting to Database
-//$config_conn = mysqli_connect("$host","$user","$pass","$dbname");
-$config_conn = mysqli_connect($connarr["Data Source"],$connarr["User Id"],$connarr["Password"],"bsheartrate");
+$config_conn = mysqli_connect("$host","$user","$pass","$dbname");
+//$config_conn = mysqli_connect($connarr["Data Source"],$connarr["User Id"],$connarr["Password"],"bsheartrate");
 
 if (!$config_conn) { exit("No MySQL Connection Established.<BR><BR>" . mysqli_error($config_conn)); }
 
