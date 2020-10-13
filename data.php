@@ -13,6 +13,13 @@ if (!validateDate("$date 00:00:00")) {
 	exit("Date is not valid. Please use YYYY-MM-DD format.");
 }
 
+if (isset($_GET['fb_client_id']) && trim($_GET['fb_client_id']) != "") {
+	
+	// Register Client ID in the Session
+	$fb_client_id = safe(trim($_GET['fb_client_id']));
+	$_SESSION['fb_client_id'] = $fb_client_id;
+}
+
 // Step 2 - Do not proceed if Client ID is not set
 if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	exit("Client ID not available. Please <a href='index.php'>try again</a>");
