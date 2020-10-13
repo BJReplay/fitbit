@@ -1,9 +1,15 @@
 <?php
 include_once("config.php");
 
-// If Client ID is provided, save it in session and try to authenticate
+// If FB Client ID is provided, save it in session and skip authentication
 $fb_client_id = '';
-if (isset($_POST['client_id']) && trim($_POST['client_id']) != "") {
+if (isset($_POST['fb_client_id']) && trim($_POST['fb_client_id']) != "") {
+	
+	// Register Client ID in the Session
+	$fb_client_id = safe(trim($_POST['fb_client_id']));
+	$_SESSION['fb_client_id'] = $fb_client_id;
+// If FB Client ID is provided, save it in session and try to authenticate	
+} elseif (isset($_POST['client_id']) && trim($_POST['client_id']) != "") {
 
 	// Register Client ID in the Session
 	$fb_client_id = safe(trim($_POST['client_id']));
@@ -12,6 +18,7 @@ if (isset($_POST['client_id']) && trim($_POST['client_id']) != "") {
 	// Redirect to Fitbit for OAuth2
 	header("Location: $config_oauth_url?response_type=token&scope=$config_scope&redirect_url=$config_redirect_uri&expires_in=$config_expires_sec&client_id=$fb_client_id");
 	exit;
+
 }
 
 
