@@ -3,11 +3,12 @@ include_once("config.php");
 
 // If FB Client ID is provided, save it in session and skip authentication
 $fb_client_id = '';
-if (isset($_POST['fb_client_id']) && trim($_POST['fb_client_id']) != "") {
+if (isset($_GET['fb_client_id']) && trim($_GET['fb_client_id']) != "") {
 	
 	// Register Client ID in the Session
-	$fb_client_id = safe(trim($_POST['fb_client_id']));
+	$fb_client_id = safe(trim($_GET['fb_client_id']));
 	$_SESSION['fb_client_id'] = $fb_client_id;
+	
 // If FB Client ID is provided, save it in session and try to authenticate	
 } elseif (isset($_POST['client_id']) && trim($_POST['client_id']) != "") {
 
