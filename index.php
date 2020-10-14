@@ -146,7 +146,7 @@ if (isset($_SESSION['fb_client_id'])) {
 
 
 	<hr>
-	&copy; 2017 Vivek Kapoor, <a href='https://exain.wordpress.com'>https://exain.wordpress.com</a>
+	Based on an example &copy; 2017 Vivek Kapoor, <a href='https://exain.wordpress.com'>https://exain.wordpress.com</a>
 
 </div> <!-- /container -->
 
