@@ -27,17 +27,15 @@ if (isset($_GET['fb_client_id']) && trim($_GET['fb_client_id']) != "") {
 	// Register Client ID in the Session
 	$fb_client_id = safe(trim($_POST['client_id']));
 	$_SESSION['fb_client_id'] = $fb_client_id;
-
+	setcookie("fb_client_id", $fb_client_id, time()+$config_expires_sec, "/", "bsheartrate.azurewebsites.net", 1); 
 	// Redirect to Fitbit for OAuth2
 	header("Location: $config_oauth_url?response_type=token&scope=$config_scope&redirect_url=$config_redirect_uri&expires_in=$config_expires_sec&client_id=$fb_client_id");
 	exit;
 
 }
 
-
 if (isset($_SESSION['fb_client_id'])) {
 	$fb_client_id = $_SESSION['fb_client_id'];
-	setcookie("fb_client_id", $fb_client_id, time()+$config_expires_sec, "/", "bsheartrate.azurewebsites.net", 1); 
 }
 ?>
 <!DOCTYPE html>
