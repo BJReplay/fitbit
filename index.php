@@ -1,8 +1,20 @@
 <?php
 include_once("config.php");
 
-// If FB Client ID is provided, save it in session and skip authentication
 $fb_client_id = '';
+
+// Get session vars from cookies if possible
+if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
+	$fb_client_id = $_COOKIE['fb_client_id'];
+	$_SESSION['fb_client_id'] = $fb_client_id;
+}
+
+if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
+	$fb_access_token = $_COOKIE['fb_access_token'];
+	$_SESSION['fb_access_token'] = $fb_client_id;
+}
+
+// If FB Client ID is provided, save it in session and skip authentication
 if (isset($_GET['fb_client_id']) && trim($_GET['fb_client_id']) != "") {
 	
 	// Register Client ID in the Session
@@ -25,6 +37,7 @@ if (isset($_GET['fb_client_id']) && trim($_GET['fb_client_id']) != "") {
 
 if (isset($_SESSION['fb_client_id'])) {
 	$fb_client_id = $_SESSION['fb_client_id'];
+	setcookie("fb_client_id", $fb_client_id, time()+$config_expires_sec, "/", "bsheartrate.azurewebsites.net", 1); 
 }
 ?>
 <!DOCTYPE html>
