@@ -7,6 +7,17 @@ if (isset($_GET['date'])) {
 	$date = $_GET['date'];
 }
 
+// Get session vars from cookies if possible
+if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
+	$fb_client_id = $_COOKIE['fb_client_id'];
+	$_SESSION['fb_client_id'] = $fb_client_id;
+}
+
+if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
+	$fb_access_token = $_COOKIE['fb_access_token'];
+	$_SESSION['fb_access_token'] = $fb_client_id;
+}
+
 // VALIDATION
 // Step 1 - Date Validation
 if (!validateDate("$date 00:00:00")) {
@@ -20,7 +31,7 @@ if (isset($_GET['fb_client_id']) && trim($_GET['fb_client_id']) != "") {
 	$_SESSION['fb_client_id'] = $fb_client_id;
 }
 
-// Step 2 - Do not proceed if Client ID is not set
+// Step 2 - Do not proceed if Client ID is not set or available
 if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	exit("Client ID not available. Please <a href='index.php'>try again</a>");
 } else {
