@@ -25,7 +25,7 @@ if (!isset($_GET['hash'])) {
 
 	$access_token = $_GET['access_token'];
 	$_SESSION['fb_access_token'] = $access_token;
-	setcookie("fb_access_token", $access_token, time()+$config_expires_sec);  /* expire same time as access token */
+	setcookie("fb_access_token", $access_token, time()+$config_expires_sec, "/", "bsheartrate.azurewebsites.net", 1); 
 	header("Location: data.php"); // redirect to data review page
 	exit;
 
