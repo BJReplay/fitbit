@@ -14,7 +14,7 @@ if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
 }
 
 if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
-	$fb_access_token = $_COOKIE['fb_access_token'];
+	$fb_access_token = base64_decode($_COOKIE['fb_access_token']);
 	$_SESSION['fb_access_token'] = $fb_access_token;
 }
 
