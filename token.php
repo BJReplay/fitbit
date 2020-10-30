@@ -21,11 +21,10 @@ if (!isset($_GET['hash'])) {
 } else {
 
 	// Step 2 - Now the data is in query string. Initialize Session and process it
-	session_start();
-
 	$access_token = $_GET['access_token'];
+	setcookie("fb_access_token", base64_encode($access_token), time()+$config_expires_sec, "/", "bsheartrate.azurewebsites.net", true, true); 
+	session_start();
 	$_SESSION['fb_access_token'] = $access_token;
-	setcookie("fb_access_token", base64_encode($access_token), time()+$config_expires_sec, "/", "bsheartrate.azurewebsites.net", 1); 
 	header("Location: data.php"); // redirect to data review page
 	exit;
 
