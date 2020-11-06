@@ -4,6 +4,17 @@
 include_once("config.php");
 
 
+// Get session vars from cookies if possible
+if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
+	$fb_client_id = $_COOKIE['fb_client_id'];
+	$_SESSION['fb_client_id'] = $fb_client_id;
+}
+
+if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
+	$fb_access_token = base64_decode($_COOKIE['fb_access_token']);
+	$_SESSION['fb_access_token'] = $fb_access_token;
+}
+
 // VALIDATE THE VARIABLES
 // Step 1 - Validation of Date Availability
 if (isset($_GET['date'])) {
