@@ -147,7 +147,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	// Print the data / Show Chart
 	?>
 
-	<div id='charts'></div>
+	<div id='charts' style='height:80%;width:80%'></div>
 
 	<script>
 	Highcharts.chart('charts', {
