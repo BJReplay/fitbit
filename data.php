@@ -147,7 +147,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	// Print the data / Show Chart
 	?>
 
-	<div id='charts' style='height:80%;width:80%'></div>
+	<div id='charts'></div>
 
 	<script>
 	Highcharts.chart('charts', {
@@ -158,6 +158,8 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 		chart: {
 			zoomType: 'x',
+			width: 2200,
+			height: 1200
 		},
 		subtitle: {
 			text: '<?php echo $date; ?>'
