@@ -158,7 +158,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 		chart: {
 			zoomType: 'x',
-			height: (9 / 16 * 100) + '%' // 16:9 ratio
+			height: (7 / 16 * 100) + '%' // 16:9 ratio
 		},
 		subtitle: {
 			text: '<?php echo $date; ?>'
