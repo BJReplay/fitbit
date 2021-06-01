@@ -7,6 +7,12 @@ if (isset($_GET['date'])) {
 	$date = $_GET['date'];
 }
 
+$next_date = $date;
+$next_date->modify('+1 day');
+
+$prev_date = $date;
+$prev_date->modify('-1 day');
+
 // Get session vars from cookies if possible
 if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
 	$fb_client_id = $_COOKIE['fb_client_id'];
@@ -84,7 +90,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	</div>
 </nav>
 
-<div style='height:100px;'>
+<div style='height:10px;'>
 </div>
 
 <!-- Primary data -->
@@ -95,6 +101,10 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		<form action='data.php' method=get id='form'>
 
 		<div class="row">
+
+			<div class="col-md-1 pull-left text-left">
+				<a class="btn btn-success" href='getdata.php?date=<?php echo $prev_date; ?>'><?php echo $prev_date; ?></a>
+			</div> <!-- /col-md-1 -->
 
 			<!-- Column for Showing Date Picker -->
 			<div class="col-md-2">
@@ -111,6 +121,10 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 			<div class="col-md-3 pull-right text-right">
 				<a class="btn btn-success" href='getdata.php?date=<?php echo $date; ?>'>Refresh (Sync with Fitbit)</a>
 			</div> <!-- /col-md-3 -->
+
+			<div class="col-md-4 pull-right text-right">
+				<a class="btn btn-success" href='getdata.php?date=<?php echo $next_date; ?>'><?php echo $next_date; ?></a>
+			</div> <!-- /col-md-4 -->
 
 		</div>  <!-- /row -->
 		</form>
