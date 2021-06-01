@@ -106,7 +106,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		<div class="row">
 
 			<div class="col-md-1 pull-left text-left">
-				<a class="btn btn-success" href='data.php?date=<?php echo $prev; ?>'>&lt; <?php echo $prev; ?></a>
+				<a class="btn btn-success" href='data.php?date=<?php echo $prev; ?>'>&lt; Previous Day</a>
 			</div> <!-- /col-md-1 -->
 
 			<!-- Column for Showing Date Picker -->
@@ -123,7 +123,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 			<div class="col-md-3 pull-right text-right">
 				<a class="btn btn-success" href='getdata.php?date=<?php echo $date; ?>'>Refresh (Sync with Fitbit)</a>
-				<a class="btn btn-success" href='data.php?date=<?php echo $next; ?>'><?php echo $next; ?> &gt;</a>
+				<a class="btn btn-success" href='data.php?date=<?php echo $next; ?>'>Next Day &gt;</a>
 			</div> <!-- /col-md-3 -->
 
 
