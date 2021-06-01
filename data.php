@@ -23,7 +23,7 @@ if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
 // Step 1 - Date Validation
 if (!validateDate("$date 00:00:00")) {
 	exit("Date is not valid. Please use YYYY-MM-DD format.");
-} else (
+} else {
 	$curr_date = new DateTime($date);
 	$next_date = new DateTime($date);
 	$prev_date = new DateTime($date);
@@ -31,7 +31,7 @@ if (!validateDate("$date 00:00:00")) {
 	$prev_date->sub(new DateInterval('P1D'));
 	$next = $next_date->format("Y-m-d");
 	$prev = $prev_date->format("Y-m-d");
-)
+}
 
 if (isset($_GET['fb_client_id']) && trim($_GET['fb_client_id']) != "") {
 	
