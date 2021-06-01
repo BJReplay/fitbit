@@ -29,8 +29,8 @@ if (!validateDate("$date 00:00:00")) {
 	$prev_date = new DateTime($date);
 	$next_date->add(new DateInterval('P1D'));
 	$prev_date->sub(new DateInterval('P1D'));
-	$next = date("Y-m-d", $next_date);
-	$prev = date("Y-m-d", $prev_date);
+	$next = $next_date->format("Y-m-d");
+	$prev = $prev_date->format("Y-m-d");
 )
 
 if (isset($_GET['fb_client_id']) && trim($_GET['fb_client_id']) != "") {
