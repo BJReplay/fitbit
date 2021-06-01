@@ -91,7 +91,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	</div>
 </nav>
 
-<div style='height:10px;'>
+<div style='height:60px;'>
 </div>
 
 <!-- Primary data -->
