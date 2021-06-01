@@ -3,16 +3,16 @@ include_once("config.php");
 
 // Get Date or set current date
 $date = date("Y-m-d");
-$next_date = date("Y-m-d");
-$prev_date = date("Y-m-d");
+//$next_date = date("Y-m-d");
+//$prev_date = date("Y-m-d");
 if (isset($_GET['date'])) {
 	$date = $_GET['date'];
-	$next_date = $_GET['date'];
-	$prev_date = $_GET['date'];
+//	$next_date = $_GET['date'];
+//	$prev_date = $_GET['date'];
 }
 
-$next_date->add(new DateInterval('P1D'));
-$prev_date->subtract(new DateInterval('P1D'));
+//$next_date->add(new DateInterval('P1D'));
+//$prev_date->subtract(new DateInterval('P1D'));
 
 // Get session vars from cookies if possible
 if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
@@ -104,7 +104,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		<div class="row">
 
 			<div class="col-md-1 pull-left text-left">
-				<a class="btn btn-success" href='getdata.php?date=<?php echo $prev_date; ?>'><?php echo $prev_date; ?></a>
+				<a class="btn btn-success" href='getdata.php?date=<?php echo $date; ?>'><?php echo $date; ?></a>
 			</div> <!-- /col-md-1 -->
 
 			<!-- Column for Showing Date Picker -->
@@ -124,7 +124,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 			</div> <!-- /col-md-3 -->
 
 			<div class="col-md-4 pull-right text-right">
-				<a class="btn btn-success" href='getdata.php?date=<?php echo $next_date; ?>'><?php echo $next_date; ?></a>
+				<a class="btn btn-success" href='getdata.php?date=<?php echo $date; ?>'><?php echo $date; ?></a>
 			</div> <!-- /col-md-4 -->
 
 		</div>  <!-- /row -->
