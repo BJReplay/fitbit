@@ -3,15 +3,16 @@ include_once("config.php");
 
 // Get Date or set current date
 $date = date("Y-m-d");
+$next_date = date("Y-m-d");
+$prev_date = date("Y-m-d");
 if (isset($_GET['date'])) {
 	$date = $_GET['date'];
+	$next_date = $_GET['date'];
+	$prev_date = $_GET['date'];
 }
 
-$next_date = $date;
-$next_date->modify('+1 day');
-
-$prev_date = $date;
-$prev_date->modify('-1 day');
+$next_date->add(new DateInterval('P1D'));
+$prev_date->subtract(new DateInterval('P1D'));
 
 // Get session vars from cookies if possible
 if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
