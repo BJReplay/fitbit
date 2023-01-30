@@ -80,6 +80,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		<!-- date picker -->
 		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker3.css">
 		<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/js/bootstrap-datepicker.js"></script>
+        <link rel="icon" href="/assets/favicon32.ico" type="image/x-icon" />
 	</head>
 
 <body>
