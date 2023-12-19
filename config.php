@@ -4,7 +4,7 @@ session_start();
 include_once("functions.php");
 
 //below  will give the whole connectionstring in a single string
-$conn = getenv("AZURE_MYSQL_CONNECTIONSTRING"); 
+$conn = getenv("MYSQLCONNSTR_AZURE_MYSQL_CONNECTIONSTRING"); 
 
 //Let's split it and decorate it in an array
 $conarr2 = explode(";",$conn); 
