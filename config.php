@@ -22,8 +22,8 @@ $dbname = $conarr["Database"];
 // Other Configuration Parameters
 
 // Replace the Redirect URL with your setup
-$config_base_uri = "https://bsheartrate.azurewebsites.net";
-$config_redirect_uri = $config_base_uri . "/token.php";
+$config_base_host = getenv("WEBSITE_HOSTNAME") ;
+$config_redirect_uri = "https://" . $config_base_host . "/token.php";
 
 $config_oauth_url = "https://www.fitbit.com/oauth2/authorize";
 $config_scope = "heartrate profile oxygen_saturation respiratory_rate sleep temperature"; // only getting heartrate and profile data
