@@ -14,7 +14,7 @@ foreach($conarr2 as $key=>$value){
     $conarr[$k] = substr($value,strpos($value,'=')+1);
 }
 
-$host = $conarr["Data Source"]; 
+$host = $conarr["Server"]; 
 $user = $conarr["User Id"]; 
 $pass = $conarr["Password"];
 $dbname = $conarr["Database"];
