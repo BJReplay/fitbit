@@ -5,7 +5,7 @@ server {
     listen [::]:8080;
     root /home/site/wwwroot;
     index  index.php index.html index.htm;
-    server_name  bsheartratenew.azurewebsites.net www.bsheartratenew.azurewebsites.net; 
+    server_name  bsheartrate.azurewebsites.net www.bsheartrate.azurewebsites.net; 
     port_in_redirect off;
 
     location / {            
