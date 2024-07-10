@@ -31,7 +31,7 @@ $config_base_host = getenv("WEBSITE_HOSTNAME") ;
 $config_redirect_uri = "https://" . $config_base_host . "/token.php";
 
 $config_oauth_url = "https://www.fitbit.com/oauth2/authorize";
-$config_scope = "heartrate profile oxygen_saturation respiratory_rate sleep temperature"; // only getting heartrate and profile data
+$config_scope = "heartrate profile"; // only getting heartrate and profile data
 $config_expires_sec = 30 * 24 * 60 * 60; // 30 Days
 $config_api_url = "https://api.fitbit.com/1/user/-/activities/heart/date"; // please see getdata.php /$date/1d/1sec/time/00:00/23:59.json";
 
