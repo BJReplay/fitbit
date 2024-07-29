@@ -62,7 +62,7 @@ ON DUPLICATE KEY update fbjsondata='$data'";
 if (mysqli_query($config_conn, $q)) {
 	header("Location: data.php?date=$date&rand=".rand());
 } else {
-	exit("There was an error synchronising with Fitbit: " $q);
+	exit("There was an error synchronising with Fitbit: " . $q);
 }
 
 ?>
