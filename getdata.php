@@ -61,6 +61,7 @@ $q = "insert into `data_raw` set fbuser = '$user', fbdate='$date', fbjsondata='$
 ON DUPLICATE KEY update fbjsondata='$data'";
 if (mysqli_query($config_conn, $q)) {
 	header("Location: data.php?date=$date&rand=".rand());
+	mysqli_close($config_conn);
 } else {
 	exit("There was an error synchronising with Fitbit: " . mysqli_error($config_conn));
 }
