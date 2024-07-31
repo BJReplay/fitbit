@@ -45,7 +45,8 @@ if (!isset($_SESSION['fb_client_id']) || trim($_SESSION['fb_client_id']) == "") 
 
 // GET DATA FROM FITBIT
 // Step 1 - Prepare URL
-$url = "$config_api_url/$date/1d/1sec/time/00:00/23:50.json";
+//$url = "$config_api_url/$date/1d/1sec/time/00:00/23:50.json";
+$url = "$config_api_url/$date/1d/1sec.json";
 $headers = array("Authorization: Bearer $access_token");
 
 // Step 2 - Get from Fitbit
