@@ -1,17 +1,11 @@
 ## What is Fitbit Intraday Heart Rate Data?
 Fitbit Trackers which have Heart Rate sensors in them capture the [Heart Rate **continuously**](https://help.fitbit.com/articles/en_US/Help_article/1565#How). However, Fitbit's App provides the Heart Rate information in 5-minute intervals.
 
-This code allows you to download the detailed data from Fitbit's website and either see it on a chart, or download it in an Excel.
+This code allows you to download the detailed data from Fitbit's API and see it on a chart.
 
 ## Why was this created?
-I was quite emotionally charged up during a work seminar. Though I was sitting, I could feel my heart rate rising up. The Fitbit App was showing minimal heart rate increase, but I wanted to delve into more details. Since I could not find the detailed information easily available from the Fitbit App & Website, I used the Fitbit APIs to retrieve the data.
-
-Learn more on how it looks at https://exain.wordpress.com/2017/07/26/fitbit-intraday-heartbeat-tracking-with-code
-
-## Tutorial on doing Fitbit OAuth2
-I created a YouTube tutorial to showcase how you can configure your Fitbit Developer account to do OAuth2, and then get a "Client ID", which you can use in the code.
-
-https://youtu.be/_H5fFtsrfeU
+This was inspired by https://github.com/technotablet/fitbit by my need to track my SVT that hasn't responded to two rounds of ablation, and now, post COVID, is problematic.
+It was modified from the original to deal with problems retrieving data that appear to be caused by changes in the Fitbit API, so only displays the chart, but includes a refresh button, as well as navigation buttons.
 
 ## Demo Version
 You can use https://exain.com/fitbit service to see a demo.
