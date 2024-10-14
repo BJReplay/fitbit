@@ -58,7 +58,7 @@ $user = safe($fb_client_id);
 $data = safe($data);
 
 // Step 4 - Delete existing data
-$q = "delete where fbuser = '$user' and fbdate='$date'";
+$q = "delete from `data_raw` where `data_raw`.`fbuser` = '$user' and `data_raw`.`fbdate`='$date'";
 if (mysqli_query($config_conn, $q)) {
 	// Step 5 - Insert into database
 	$q = "insert into `data_raw` set fbuser = '$user', fbdate='$date', fbjsondata='$data'";
