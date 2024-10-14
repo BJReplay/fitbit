@@ -57,14 +57,20 @@ $date = safe($date);
 $user = safe($fb_client_id);
 $data = safe($data);
 
-// Step 4 - Insert into database
-$q = "insert into `data_raw` set fbuser = '$user', fbdate='$date', fbjsondata='$data'
-ON DUPLICATE KEY update fbjsondata='$data'";
+// Step 4 - Delete existing data
+$q = "delete where fbuser = '$user' and fbdate='$date'";
 if (mysqli_query($config_conn, $q)) {
-	header("Location: data.php?date=$date&rand=".rand());
-	mysqli_close($config_conn);
+	// Step 5 - Insert into database
+	$q = "insert into `data_raw` set fbuser = '$user', fbdate='$date', fbjsondata='$data'";
+	if (mysqli_query($config_conn, $q)) {
+		header("Location: data.php?date=$date&rand=".rand());
+		mysqli_close($config_conn);
+	} else {
+		exit("There was an error synchronising with Fitbit: " . mysqli_error($config_conn));
+	}
 } else {
 	exit("There was an error synchronising with Fitbit: " . mysqli_error($config_conn));
 }
+
 
 ?>
