@@ -255,7 +255,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 			</thead>
 
 			<?php
-			$hbsummary = $series['activities-heart'][0];
+			$hbsummary = $series['activities-heart']['value'];
 
 			$i=0;
 			$color = array('active','success','warning','danger','active','active','active','active');
