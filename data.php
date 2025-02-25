@@ -228,7 +228,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	<div class="row">
 
 		<!-- headers for tables shown later -->
-		<div class="col-md-5 pull-left">
+		<div class="col-md-3 pull-left">
 			<h4>Heart Rate Summary</h4>
 		</div>
 
@@ -237,7 +237,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		$rhr = $hbsummary['restingHeartRate'];
 		?>
 		
-		<div class="col-md-5 pull-left">
+		<div class="col-md-3">
 			<h4>Resting Heart Rate: <?php echo $rhr; ?></h4>
 		</div>
 
