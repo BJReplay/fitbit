@@ -149,7 +149,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		$series_raw = mysqli_fetch_row($result);
 		$series = objectToArray(json_decode($series_raw[1]));
 
-		if !(is_null($series)) {
+		if !is_null($series) {
 			foreach ($series['activities-heart-intraday']['dataset'] as $key=>$value) {
 				$time = $value['time'];
 				$hb = $value['value'];
