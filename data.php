@@ -149,13 +149,15 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		$series_raw = mysqli_fetch_row($result);
 		$series = objectToArray(json_decode($series_raw[1]));
 
-		foreach ($series['activities-heart-intraday']['dataset'] as $key=>$value) {
-			$time = $value['time'];
-			$hb = $value['value'];
-
-			$timearr = explode(":",$time);
-			$datearr = explode("-",$date);
-			$seriesarr[] = "[Date.UTC($datearr[0],$datearr[1]-1,$datearr[2],$timearr[0],$timearr[1],$timearr[2]), $hb]";
+		if !(is_null($series)) {
+			foreach ($series['activities-heart-intraday']['dataset'] as $key=>$value) {
+				$time = $value['time'];
+				$hb = $value['value'];
+	
+				$timearr = explode(":",$time);
+				$datearr = explode("-",$date);
+				$seriesarr[] = "[Date.UTC($datearr[0],$datearr[1]-1,$datearr[2],$timearr[0],$timearr[1],$timearr[2]), $hb]";
+			}
 		}
 	}
 
