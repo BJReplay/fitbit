@@ -232,6 +232,15 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 			<h4>Heart Rate Summary</h4>
 		</div>
 
+		<?php
+		$hbsummary = $series['activities-heart'][0]['value'];
+		$rhr = $hbsummary['restingHeartRate'];
+		?>
+		
+		<div class="col-md-5 pull-left">
+			<h4>Resting Heart Rate: <?php echo $rhr; ?></h4>
+		</div>
+
 		<div class="col-md-6 pull-right">
 			<a class="btn btn-primary pull-right" href="download.php?date=<?php echo $date; ?>">Export to Excel</a>
 			<h4>Heart Rate Detailed Data</h4> 
@@ -255,8 +264,6 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 			</thead>
 
 			<?php
-			$hbsummary = $series['activities-heart'][0]['value'];
-
 			$i=0;
 			$color = array('active','success','warning','danger','active','active','active','active');
 			foreach ($hbsummary['heartRateZones'] as $hbsummarydata1) {
