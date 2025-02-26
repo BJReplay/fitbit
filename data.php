@@ -238,7 +238,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 			$rhr = $hbsummary['restingHeartRate'];
 		}
 		else {
-			$rhr = "Unknown"
+			$rhr = "Unknown";
 		}
 		?>
 		
