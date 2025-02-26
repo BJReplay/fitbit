@@ -233,9 +233,11 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		</div>
 
 		<?php
-		if (!is_null($series)) {
-			$hbsummary = $series['activities-heart'][0]['value'];
-			$rhr = isset($hbsummary['restingHeartRate']) ? $hbsummary['restingHeartRate'] : "Unknown";
+		if (mysqli_num_rows($result) > 0) {
+			if (!is_null($series)) {
+				$hbsummary = $series['activities-heart'][0]['value'];
+				$rhr = isset($hbsummary['restingHeartRate']) ? $hbsummary['restingHeartRate'] : "Unknown";
+			}
 		}
 		else {
 			$rhr = "Unknown";
@@ -269,18 +271,20 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 			</thead>
 
 			<?php
-			if (!is_null($series)) {
-				$i=0;
-				$color = array('active','success','warning','danger','active','active','active','active');
-				foreach ($hbsummary['heartRateZones'] as $hbsummarydata1) {
-	
-					echo "<tr class='$color[$i]'>";
-					echo "<td>".$hbsummarydata1['name']."</td>\n";
-					echo "<td>".$hbsummarydata1['minutes']."</td>\n";
-					echo "<td>".$hbsummarydata1['caloriesOut']."</td>\n";
-					echo "<td>".$hbsummarydata1['min'].'-'.$hbsummarydata1['max']."</td>\n";
-					echo "</tr>";
-					$i++;
+			if (mysqli_num_rows($result) > 0) {
+				if (!is_null($series)) {
+					$i=0;
+					$color = array('active','success','warning','danger','active','active','active','active');
+					foreach ($hbsummary['heartRateZones'] as $hbsummarydata1) {
+		
+						echo "<tr class='$color[$i]'>";
+						echo "<td>".$hbsummarydata1['name']."</td>\n";
+						echo "<td>".$hbsummarydata1['minutes']."</td>\n";
+						echo "<td>".$hbsummarydata1['caloriesOut']."</td>\n";
+						echo "<td>".$hbsummarydata1['min'].'-'.$hbsummarydata1['max']."</td>\n";
+						echo "</tr>";
+						$i++;
+					}
 				}
 			}
 			?>
@@ -303,9 +307,11 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 			if (mysqli_num_rows($result) == '0') {
 				echo "<tr><td colspan=2 style='height:200px;'>No data available</td></tr>\n";
 			}
+			if (mysqli_num_rows($result) > 0) {
 				if (!is_null($series)) {
-				foreach ($series['activities-heart-intraday']['dataset'] as $key=>$value) {
-					echo "<tr><td>$date $value[time]</td><td>$value[value]</td></tr>\n";
+					foreach ($series['activities-heart-intraday']['dataset'] as $key=>$value) {
+						echo "<tr><td>$date $value[time]</td><td>$value[value]</td></tr>\n";
+					}
 				}
 			}
 
