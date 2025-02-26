@@ -235,7 +235,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		<?php
 		if (!is_null($series)) {
 			$hbsummary = $series['activities-heart'][0]['value'];
-			$rhr = $hbsummary['restingHeartRate'];
+			$rhr = isset($hbsummary['restingHeartRate']) ? $hbsummary['restingHeartRate'] : "Unknown";
 		}
 		else {
 			$rhr = "Unknown";
