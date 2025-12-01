@@ -7,7 +7,7 @@ function curl($url,$headers) {
 		CURLOPT_RETURNTRANSFER => true,         // return web page
 		CURLOPT_HEADER         => false,        // don't return headers
 		CURLOPT_FOLLOWLOCATION => true,         // follow redirects
-		CURLOPT_ENCODING       => false,           // handle all encodings
+		CURLOPT_ENCODING       => false,        // handle all encodings
 		CURLOPT_USERAGENT      => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:45.0) Gecko/20100101 Firefox/45.0",
 		CURLOPT_AUTOREFERER    => true,         // set referer on redirect
 		CURLOPT_CONNECTTIMEOUT => 120,          // timeout on connect
@@ -29,7 +29,11 @@ function curl($url,$headers) {
 		$BodyText = 'No Content';
 	}
 
-	curl_close($ch);
+	 if (PHP_VERSION_ID >= 80000) {
+    	 unset($ch);
+	 } else {
+	     curl_close($ch);
+	 }
 
 	return $BodyText;
 }
