@@ -32,8 +32,12 @@ if (!validateDate($date . ' 00:00:00')) {
 if (isset($_GET['next'])) {
 	$tempnext = $_GET['next'];
 	if (validateDate($tempnext . ' 00:00:00')) {
-		$date = $_GET['next'];
+		$next = $_GET['next'];
+	} else {
+		$next = $date;
 	}
+} else {
+	$next = $date;
 }
 
 // Step 3 - Validation of Access Token
@@ -70,7 +74,7 @@ if (mysqli_query($config_conn, $q)) {
 	// Step 5 - Insert into database
 	$q = "insert into `data_raw` set fbuser = '$user', fbdate='$date', fbjsondata='$data'";
 	if (mysqli_query($config_conn, $q)) {
-		header("Location: data.php?date=$date&rand=" . rand());
+		header("Location: data.php?date=$next&rand=" . rand());
 		mysqli_close($config_conn);
 	} else {
 		exit("There was an error synchronising with Fitbit: " . mysqli_error($config_conn));
