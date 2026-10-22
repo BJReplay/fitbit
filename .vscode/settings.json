@@ -28,6 +28,7 @@
         "mysqli",
         "RETURNTRANSFER",
         "seriesarr",
+        "tempnext",
         "timearr",
         "VERIFYHOST",
         "VERIFYPEER",
