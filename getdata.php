@@ -28,6 +28,14 @@ if (!validateDate($date . ' 00:00:00')) {
 	exit("Date is not in a valid format. Please use YYYY-MM-DD Format. Sorry.");
 }
 
+// Step 2a - Validation of Next Date Availability
+if (isset($_GET['next'])) {
+	$tempnext = $_GET['next'];
+	if (validateDate($tempnext . ' 00:00:00')) {
+		$date = $_GET['next'];
+	}
+}
+
 // Step 3 - Validation of Access Token
 if (!isset($_SESSION['fb_access_token']) || trim($_SESSION['fb_access_token']) == "") {
 	exit("No access token available. Please <a href='./index.php'>try again</a>.");
