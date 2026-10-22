@@ -7,28 +7,29 @@ include_once("config.php");
 if (!isset($_GET['hash'])) {
 
 ?>
-<html>
-<body>
+	<html>
 
-<script>
-	var hashdata = window.location.hash;
-	var data = hashdata.substr(1);
-	location.href = 'token.php?hash=true&' + data;
-</script>
+	<body>
 
-</body>
-</html>
+		<script>
+			var hashdata = window.location.hash;
+			var data = hashdata.substr(1);
+			location.href = 'token.php?hash=true&' + data;
+		</script>
+
+	</body>
+
+	</html>
 
 <?php
 } else {
 
 	// Step 2 - Now the data is in query string. Initialize Session and process it
 	$access_token = $_GET['access_token'];
-	setcookie("fb_access_token", base64_encode($access_token), time()+$config_expires_sec, "/", $config_base_host, true, true); 
-//	session_start();
+	setcookie("fb_access_token", base64_encode($access_token), time() + $config_expires_sec, "/", $config_base_host, true, true);
+	//	session_start();
 	$_SESSION['fb_access_token'] = $access_token;
 	header("Location: data.php"); // redirect to data review page
 	exit;
-
 }
 ?>
