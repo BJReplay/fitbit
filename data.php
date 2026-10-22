@@ -7,6 +7,9 @@ if (isset($_GET['date'])) {
 	$date = $_GET['date'];
 }
 
+if (isset($_GET['next'])) {
+	$date = $_GET['next'];
+}
 
 // Get session vars from cookies if possible
 if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
@@ -124,6 +127,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 					</div><!-- /col-md-2 -->
 
 					<div class="col-md-3 pull-right text-right">
+						<a class="btn btn-success" href='getdata.php?date=<?php echo $date; ?>&next=<?php echo $next; ?>'>Fetch and Next &gt;</a>
 						<a class="btn btn-success" href='getdata.php?date=<?php echo $date; ?>'>Refresh (Sync with Fitbit)</a>
 						<a class="btn btn-success" href='data.php?date=<?php echo $next; ?>'>Next Day &gt;</a>
 					</div> <!-- /col-md-3 -->
