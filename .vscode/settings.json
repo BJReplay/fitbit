@@ -1,0 +1,33 @@
+{
+    "cSpell.words": [
+        "AUTOREFERER",
+        "conarr",
+        "connectionstring",
+        "CONNECTTIMEOUT",
+        "CURLOPT",
+        "datearr",
+        "dbname",
+        "fbdate",
+        "fbjsondata",
+        "fbuser",
+        "Fitbit",
+        "FOLLOWLOCATION",
+        "getdata",
+        "hashdata",
+        "heartrate",
+        "hrdata",
+        "HTTPHEADER",
+        "Intraday",
+        "Kapoor",
+        "localdb",
+        "MAXREDIRS",
+        "MYSQLCONNSTR",
+        "mysqli",
+        "RETURNTRANSFER",
+        "seriesarr",
+        "timearr",
+        "VERIFYHOST",
+        "VERIFYPEER",
+        "Vivek"
+    ]
+}

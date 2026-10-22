@@ -1,7 +1,8 @@
 <?php
 
 // Fetch Information through curl
-function curl($url,$headers) {
+function curl(string $url, array $headers)
+{
 
 	$options = array(
 		CURLOPT_RETURNTRANSFER => true,         // return web page
@@ -19,27 +20,28 @@ function curl($url,$headers) {
 		CURLOPT_HTTPHEADER => $headers,
 	);
 
-	$ch = curl_init ($url);
+	$ch = curl_init($url);
 
-	curl_setopt_array($ch,$options);
+	curl_setopt_array($ch, $options);
 
 	$BodyText = (curl_exec($ch));
 
-	if (trim($BodyText) == '')  {
+	if (trim($BodyText) == '') {
 		$BodyText = 'No Content';
 	}
 
-	 if (PHP_VERSION_ID >= 80000) {
-    	 unset($ch);
-	 } else {
-	     curl_close($ch);
-	 }
+	if (PHP_VERSION_ID >= 80000) {
+		unset($ch);
+	} else {
+		curl_close($ch);
+	}
 
 	return $BodyText;
 }
 
 // Convert object to array  
-function objectToArray($d) {
+function objectToArray(mixed $d): mixed
+{
 	if (is_object($d)) {
 		// Gets the properties of the given object
 		// with get_object_vars function
@@ -53,23 +55,22 @@ function objectToArray($d) {
 		* for recursive call
 		*/
 		return array_map(__FUNCTION__, $d);
-		}
-		else {
-			// Return array
-			return $d;
-		}
+	} else {
+		// Return array
+		return $d;
+	}
 }
 
 // To Validate Date
-function validateDate($date, $format = 'Y-m-d H:i:s')
+function validateDate(string $date, string $format = 'Y-m-d H:i:s'): bool
 {
 	$d = DateTime::createFromFormat($format, $date);
 	return $d && $d->format($format) == $date;
 }
 
 // To sanitize MySQL input
-function safe($data) {
+function safe(string $data)
+{
 	global $config_conn;
-	return mysqli_real_escape_string($config_conn,$data);
-}  
-?>
+	return mysqli_real_escape_string($config_conn, $data);
+}

@@ -19,8 +19,7 @@ if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
 // Step 1 - Validation of Date Availability
 if (isset($_GET['date'])) {
 	$date = $_GET['date'];
-}
-else {
+} else {
 	exit("No date information is provided. Please provide date in YYYY-MM-DD format.");
 }
 
@@ -50,7 +49,7 @@ $url = "$config_api_url/$date/1d/1sec.json";
 $headers = array("Authorization: Bearer $access_token");
 
 // Step 2 - Get from Fitbit
-$data = curl($url,$headers);
+$data = curl($url, $headers);
 
 // Step 3 - Sanitize
 $date = safe($date);
@@ -63,7 +62,7 @@ if (mysqli_query($config_conn, $q)) {
 	// Step 5 - Insert into database
 	$q = "insert into `data_raw` set fbuser = '$user', fbdate='$date', fbjsondata='$data'";
 	if (mysqli_query($config_conn, $q)) {
-		header("Location: data.php?date=$date&rand=".rand());
+		header("Location: data.php?date=$date&rand=" . rand());
 		mysqli_close($config_conn);
 	} else {
 		exit("There was an error synchronising with Fitbit: " . mysqli_error($config_conn));
@@ -71,6 +70,3 @@ if (mysqli_query($config_conn, $q)) {
 } else {
 	exit("There was an error synchronising with Fitbit: " . mysqli_error($config_conn));
 }
-
-
-?>

@@ -31,41 +31,41 @@ $q = "select id, fbjsondata from `data_raw` where fbdate='$date' and fbuser='$fb
 $result = mysqli_query($config_conn, $q);
 
 $seriesarr = array();
+$series = array('activities-heart-intraday' => array('dataset' => array()));
 if (mysqli_num_rows($result) > 0) {
 
 	$series_raw = mysqli_fetch_row($result);
 	$series = objectToArray(json_decode($series_raw[1]));
 
-	foreach ($series['activities-heart-intraday']['dataset'] as $key=>$value) {
+	foreach ($series['activities-heart-intraday']['dataset'] as $key => $value) {
 		$time = $value['time'];
 		$hb = $value['value'];
 
-		$timearr = explode(":",$time);
-		$datearr = explode("-",$date);
+		$timearr = explode(":", $time);
+		$datearr = explode("-", $date);
 		$seriesarr[] = "[Date.UTC($datearr[0],$datearr[1]-1,$datearr[2],$timearr[0],$timearr[1],$timearr[2]), $hb]";
 	}
-
 }
 
 ?>
 
 <table class="table table-bordered" id='hrdata'>
-<thead>
-	<th>Date &amp; Time</th>
-	<th>Heart Rate</th>
-</thead>
+	<thead>
+		<th>Date &amp; Time</th>
+		<th>Heart Rate</th>
+	</thead>
 
 
-<?php
+	<?php
 
-if (mysqli_num_rows($result) == '0') {
-	echo "<tr><td colspan=2 style='height:200px;'>No data available</td></tr>\n";
-}
+	if (mysqli_num_rows($result) == '0') {
+		echo "<tr><td colspan=2 style='height:200px;'>No data available</td></tr>\n";
+	}
 
-foreach ($series['activities-heart-intraday']['dataset'] as $key=>$value) {
-	echo "<tr><td>$date $value[time]</td><td>$value[value]</td></tr>\n";
-}
+	foreach ($series['activities-heart-intraday']['dataset'] as $key => $value) {
+		echo "<tr><td>$date $value[time]</td><td>$value[value]</td></tr>\n";
+	}
 
-?>
+	?>
 
 </table>
