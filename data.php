@@ -113,7 +113,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 				<div class="row">
 
 					<div class="col-md-1 pull-left text-left">
-						<a class="btn btn-success" href='data.php?date=<?php echo $prev; ?>'> &#x25c4; </a>
+						<a class="btn btn-success" title="Previous Day" href='data.php?date=<?php echo $prev; ?>'> &#x25c4; </a>
 					</div> <!-- /col-md-1 -->
 
 					<!-- Column for Showing Date Picker -->
@@ -129,9 +129,9 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 					</div><!-- /col-md-2 -->
 
 					<div class="col-md-3 pull-right text-right">
-						<a class="btn btn-success" href='getdata.php?date=<?php echo $date; ?>&next=<?php echo $next; ?>'>&#x21bb; &amp; &#x25ba;</a>
-						<a class="btn btn-success" href='getdata.php?date=<?php echo $date; ?>'>&#x21bb;</a>
-						<a class="btn btn-success" href='data.php?date=<?php echo $next; ?>'> &#x25ba; </a>
+						<a class="btn btn-success" title="Fetch and Next" href='getdata.php?date=<?php echo $date; ?>&next=<?php echo $next; ?>'>&#x21bb; &amp; &#x25ba;</a>
+						<a class="btn btn-success" title="Refresh" href='getdata.php?date=<?php echo $date; ?>'>&#x21bb;</a>
+						<a class="btn btn-success" title="Next Day" href='data.php?date=<?php echo $next; ?>'> &#x25ba; </a>
 					</div> <!-- /col-md-3 -->
 
 
