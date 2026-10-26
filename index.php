@@ -119,7 +119,8 @@ if (isset($_SESSION['fb_client_id'])) {
 
 			<div class="col-md-9 ">
 				<h4>About Fitbit Intraday Heart Rate Service</h4>
-				Through the Fitbit App, you can view heartrate information only in 5-minute intervals. However, your tracker is capturing your heartrate every few seconds.
+				<P>
+					Through the Fitbit App, you can view heartrate information only in 5-minute intervals. However, your tracker is capturing your heartrate every few seconds.
 				<P>
 					The service available on this website allows you to connect to the Fitbit website and get your Intraday Heart Rate Data. You can:
 				<ul>
@@ -127,7 +128,7 @@ if (isset($_SESSION['fb_client_id'])) {
 					<li> View the data on a chart and export it to an image
 					<li> Export the data in Excel format
 				</ul>
-				<P>More information on why this service was created is available at
+				<P>More information on why this service was originally created is available at
 				<ul>
 					<li> <a href="https://exain.wordpress.com/2017/07/26/fitbit-intraday-heartbeat-tracking-with-code">https://exain.wordpress.com/2017/07/26/fitbit-intraday-heartbeat-tracking-with-code</a>
 				</ul>
@@ -136,7 +137,7 @@ if (isset($_SESSION['fb_client_id'])) {
 				<P>
 					The code is open source and you can setup a service for yourself on your server. Download it from GitHub at
 				<ul>
-					<li> <a href="https://github.com/technotablet/fitbit">https://github.com/technotablet/fitbit</a>
+					<li> <a href="https://github.com/bjReplay/fitbit">https://github.com/bjReplay/fitbit</a>
 				</ul>
 				</p>
 
