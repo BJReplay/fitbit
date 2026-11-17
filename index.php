@@ -10,8 +10,8 @@ if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
 }
 
 if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
-	$fb_access_token = $_COOKIE['fb_access_token'];
-	$_SESSION['fb_access_token'] = $fb_client_id;
+	$fb_access_token = base64_decode($_COOKIE['fb_access_token']);
+	$_SESSION['fb_access_token'] = $fb_access_token;
 }
 
 // If FB Client ID is provided, save it in session and skip authentication
@@ -165,10 +165,9 @@ if (isset($_SESSION['fb_client_id'])) {
 	</div> <!-- /container -->
 
 
-	<script>
-		$("#client_id").focus();
+	<script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
+    $("#client_id").focus();
 	</script>
-
 </body>
 
 </html>

@@ -14,8 +14,10 @@ function curl(string $url, array $headers)
 		CURLOPT_CONNECTTIMEOUT => 120,          // timeout on connect
 		CURLOPT_TIMEOUT        => 120,          // timeout on response
 		CURLOPT_MAXREDIRS      => 10,           // stop after 10 redirects
-		CURLOPT_SSL_VERIFYHOST => 0,            // don't verify ssl
-		CURLOPT_SSL_VERIFYPEER => false,        //
+//		CURLOPT_SSL_VERIFYHOST => 0,            // don't verify ssl
+//		CURLOPT_SSL_VERIFYPEER => false,        //
+		CURLOPT_SSL_VERIFYHOST => 2,            // verify ssl
+		CURLOPT_SSL_VERIFYPEER => true,         //
 
 		CURLOPT_HTTPHEADER => $headers,
 	);
