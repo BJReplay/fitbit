@@ -11,7 +11,7 @@ if (!isset($_GET['hash'])) {
 
 	<body>
 
-		<script>
+		<script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
 			var hashdata = window.location.hash;
 			var data = hashdata.substr(1);
 			location.href = 'token.php?hash=true&' + data;

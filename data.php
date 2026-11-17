@@ -174,7 +174,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 		<div id='charts'></div>
 
-		<script>
+		<script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
 			Highcharts.chart('charts', {
 
 				title: {
@@ -332,7 +332,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 		</div> <!-- /container -->
 
-		<script>
+		<script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
 			// Date Picker Configuration
 			$('#datepicker').datepicker({
 				autoclose: true,
