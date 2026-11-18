@@ -29,3 +29,4 @@ You can use <https://exain.com/fitbit> service to see a demo.
   * Database Details (`$host`, `$user`, `$pass`, `$dbname`)
   * `$config_redirect_uri` - this will be the URL that is publicly accessible and hosted on your setup (e.g. `https://yourdomain.com/fitbit/token.php`
 * Access the service through your URL
+* There is a CSP set up for enforcement by default; if you have issues getting the service running, swap to reporting mode by commenting out the enforcement CSP header and uncommenting the reporting header in config.php

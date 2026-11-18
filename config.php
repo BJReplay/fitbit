@@ -8,9 +8,9 @@ $csp = implode('; ', [
     "base-uri 'self'",
     "object-src 'none'",
     "form-action 'self'",
-    "script-src 'self' 'nonce-{$cspNonce}' 'report-sha256'",
+    "script-src 'self' 'nonce-{$cspNonce}'",
     "style-src 'self'",
-    "img-src 'self' data:",
+    "img-src 'self' data: blob:",
     "font-src 'self'",
     "connect-src 'self'",
     "manifest-src 'self'",
@@ -19,17 +19,15 @@ $csp = implode('; ', [
     "frame-src 'none'",
     "upgrade-insecure-requests",
     "block-all-mixed-content",
-    "report-uri https://sheppo.report-uri.com/r/d/csp/wizard", // Remove unless you want to use the report-uri service
-    "report-to wizard",
 ]);
 
-header("Content-Security-Policy-Report-Only: {$csp}");
+// Uncomment the following line to enable reporting of CSP violations to a specified endpoint
+// $csp .= "; report-uri /csp-report-endpoint.php"; 
+// header("Content-Security-Policy-Report-Only: {$csp}");
+// Comment the line below to disable enforcement of the CSP if you uncomment the report-uri line above
+header("Content-Security-Policy: {$csp}");
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
-// Remove the following three lines unless you want to use the report-uri service
-header('Reporting-Endpoints: default="https://sheppo.report-uri.com/a/d/g", wizard="https://sheppo.report-uri.com/a/d/g/wizard"'); 
-header('Report-To: {"group":"default","max_age":31536000,"endpoints":[{"url":"https://sheppo.report-uri.com/a/d/g"}],"include_subdomains":true},{"group":"wizard","max_age":31536000,"endpoints":[{"url":"https://sheppo.report-uri.com/a/d/g/wizard"}],"include_subdomains":true}');
-header('NEL: {"report_to":"default","max_age":31536000,"include_subdomains":true}');
 include_once("functions.php");
 
 //below  will give the whole connectionstring in a single string
