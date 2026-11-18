@@ -65,7 +65,8 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 	<link rel="stylesheet" href="/assets/css/bootstrap-3.3.7.min.css">
 	<link rel="stylesheet" href="/assets/css/bootstrap-datepicker.min.css">
-	
+	<link rel="stylesheet" href="/assets/css/highcharts-13.1.1-local.css">
+	<link rel="stylesheet" href="/assets/css/highcharts-palette-13.1.1-local.css">
 	<link rel="stylesheet" href="/assets/css/fitbit.css">
 
 	<script src="/assets/js/jquery-1.12.4.min.js"></script>
@@ -175,6 +176,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 				},
 
 				chart: {
+					styledMode: true,
 					zoomType: 'x',
 					height: (7 / 16 * 100) + '%' // 16:9 ratio
 				},
