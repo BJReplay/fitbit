@@ -18,7 +18,6 @@ $csp = implode('; ', [
     "frame-ancestors 'none'",
     "frame-src 'none'",
     "upgrade-insecure-requests",
-    "block-all-mixed-content",
 ]);
 
 // Uncomment the following line to enable reporting of CSP violations to a specified endpoint
