@@ -3,9 +3,7 @@
 These files are stored locally so that the application does not execute
 JavaScript or load stylesheets from third-party CDNs.
 
-This also enables the tight Content Security Policy in place in the config.php CSP and headers section.
-Remove or replace these with your own CSP - this application is designed to handle your health data and
-a tight CSP is appropriate for such a service.
+This also enables the tight Content Security Policy in place in the config.php CSP.
 
 ## Dependencies
 
