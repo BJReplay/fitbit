@@ -11,7 +11,7 @@ $csp = implode('; ', [
     "form-action 'self'",
     "script-src 'self' 'nonce-{$cspNonce}' 'report-sha256'",
     "style-src 'self'",
-    "img-src 'self' data: blob",
+    "img-src 'self' data:",
     "font-src 'self'",
     "connect-src 'self'",
     "manifest-src 'self'",
