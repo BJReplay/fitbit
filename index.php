@@ -42,25 +42,14 @@ if (isset($_SESSION['fb_client_id'])) {
 
 <head>
 	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 	<title>Fitbit Heart Rate Intraday Data</title>
+	<link rel="stylesheet" href="/assets/css/bootstrap-3.3.7.min.css">
+	<link rel="stylesheet" href="/assets/css/fitbit.css">
 
-	<!-- Bootstrap -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-
-	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-	<!--[if lt IE 9]>
-	<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-	<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-	<![endif]-->
-
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-	<!-- Bootstrap Script -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<script src="/assets/js/jquery-1.12.4.min.js" defer></script>
+	<script src="/assets/js/bootstrap-3.3.7.min.js" defer></script>
 	<link rel="icon" href="/assets/favicon32.ico" type="image/x-icon" />
 </head>
 
@@ -75,8 +64,7 @@ if (isset($_SESSION['fb_client_id'])) {
 		</div>
 	</nav> <!-- /header -->
 
-	<div style='height:100px;'>
-	</div>
+	<div class="navbar-spacer" aria-hidden="true"></div>
 
 	<div class="container">
 
@@ -87,7 +75,7 @@ if (isset($_SESSION['fb_client_id'])) {
 				<form action="index.php" method="post">
 					<div class="form-group">
 						<label for="exampleInputEmail1">Fitbit Client ID</label>
-						<input type="text" class="form-control" name="client_id" id="client_id" placeholder="Enter Fitbit Client ID" value="<?php echo $fb_client_id; ?>">
+						<input type="text" class="form-control" name="client_id" id="client_id" placeholder="Enter Fitbit Client ID" value="<?php echo htmlspecialchars($fb_client_id, ENT_QUOTES, 'UTF-8'); ?>" autofocus>
 					</div>
 					<button type="submit" class="btn btn-primary">Connect with Fitbit</button>
 				</form>
@@ -165,9 +153,10 @@ if (isset($_SESSION['fb_client_id'])) {
 	</div> <!-- /container -->
 
 
-	<script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
+	<!-- <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
     $("#client_id").focus();
-	</script>
+	</script> -->
+
 </body>
 
 </html>

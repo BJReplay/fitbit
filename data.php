@@ -63,29 +63,16 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 	<title>Fitbit Heart Rate Data for <?php echo $fb_client_id; ?></title>
 
-	<!-- Bootstrap -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<link rel="stylesheet" href="/assets/css/bootstrap-3.3.7.min.css">
+	<link rel="stylesheet" href="/assets/css/bootstrap-datepicker.min.css">
+	<link rel="stylesheet" href="/assets/css/fitbit.css">
 
-	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-	<!--[if lt IE 9]>
-		<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-		<![endif]-->
+	<script src="/assets/js/jquery-1.12.4.min.js"></script>
+	<script src="/assets/js/bootstrap-3.3.7.min.js"></script>
+	<script src="/assets/js/highcharts.js"></script>
+	<script src="/assets/js/exporting.js"></script>
+	<script src="/assets/js/bootstrap-datepicker.min.js"></script>
 
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-	<!-- Include all compiled plugins (below), or include individual files as needed -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-	<!-- <script src='https://code.highcharts.com/10/highcharts.js'></script> -->
-	<!-- <script src='https://code.highcharts.com/10/modules/exporting.js'></script> -->
-	<script src='https://code.highcharts.com/highcharts.js'></script>
-	<script src='https://code.highcharts.com/modules/exporting.js'></script>
-
-	<!-- date picker -->
-	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker3.css">
-	<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/js/bootstrap-datepicker.js"></script>
 	<link rel="icon" href="/assets/favicon32.ico" type="image/x-icon" />
 </head>
 
@@ -100,8 +87,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		</div>
 	</nav>
 
-	<div style='height:60px;'>
-	</div>
+	<div class="navbar-spacer-small" aria-hidden="true"></div>
 
 	<!-- Primary data -->
 	<div class="container-fluid">
@@ -261,7 +247,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 			<!-- /headers -->
 
 
-			<div class="clear"><!-- --></div>
+			<div class="clear-both" aria-hidden="true"></div>
 
 
 			<!-- Table with Heart Rate Summary -->
@@ -311,7 +297,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 					<?php
 					if (mysqli_num_rows($result) == '0') {
-						echo "<tr><td colspan=2 style='height:200px;'>No data available</td></tr>\n";
+						echo '<tr><td colspan="2" class="no-data">No data available</td></tr>' . "\n";
 					}
 					if (mysqli_num_rows($result) > 0) {
 						if (!is_null($series)) {
@@ -326,7 +312,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 				</table>
 			</div> <!-- /col-md-6 detailed -->
 
-			<div style='clear:both;'><!-- --></div>
+			<div class="clear-both" aria-hidden="true"></div>
 
 			<hr>
 
