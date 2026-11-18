@@ -1,0 +1,15 @@
+.navbar-spacer {
+    height: 100px;
+}
+
+.navbar-spacer-small {
+    height: 60px;
+}
+
+.clear-both {
+    clear: both;
+}
+
+.no-data {
+    height: 200px;
+}
