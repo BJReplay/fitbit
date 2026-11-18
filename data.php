@@ -65,12 +65,19 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 	<link rel="stylesheet" href="/assets/css/bootstrap-3.3.7.min.css">
 	<link rel="stylesheet" href="/assets/css/bootstrap-datepicker.min.css">
+	
 	<link rel="stylesheet" href="/assets/css/fitbit.css">
 
 	<script src="/assets/js/jquery-1.12.4.min.js"></script>
+
 	<script src="/assets/js/bootstrap-3.3.7.min.js"></script>
+
 	<script src="/assets/js/highcharts.js"></script>
-	<script src="/assets/js/exporting.js"></script>
+	<script src="/assets/js/modules/series-label.js"></script>
+	<script src="/assets/js/modules/exporting.js"></script>
+	<script src="/assets/js/modules/export-data.js"></script>
+	<script src="/assets/js/modules/accessibility.js"></script>
+
 	<script src="/assets/js/bootstrap-datepicker.min.js"></script>
 
 	<link rel="icon" href="/assets/favicon32.ico" type="image/x-icon" />
@@ -160,7 +167,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 		<div id='charts'></div>
 
-		<script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
+		<script type="text/javascript" nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
 			Highcharts.chart('charts', {
 
 				title: {
@@ -318,7 +325,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 		</div> <!-- /container -->
 
-		<script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
+		<script type="text/javascript" nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
 			// Date Picker Configuration
 			$('#datepicker').datepicker({
 				autoclose: true,
