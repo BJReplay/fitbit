@@ -10,7 +10,7 @@ $csp = implode('; ', [
     "form-action 'self'",
     "script-src 'self' 'nonce-{$cspNonce}'",
     "style-src 'self'",
-    "img-src 'self' data:",
+    "img-src 'self' data: blob:",
     "font-src 'self'",
     "connect-src 'self'",
     "manifest-src 'self'",
