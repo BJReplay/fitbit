@@ -43,7 +43,7 @@ if (isset($_SESSION['fb_client_id'])) {
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+	<!-- The above meta tags *must* come first in the head; any other head content must come *after* these tags -->
 	<title>Fitbit Heart Rate Intraday Data</title>
 	<link rel="stylesheet" href="/assets/css/bootstrap-3.3.7.min.css">
 	<link rel="stylesheet" href="/assets/css/fitbit.css">
@@ -125,7 +125,7 @@ if (isset($_SESSION['fb_client_id'])) {
 				<P>
 					The code is open source and you can setup a service for yourself on your server. Download it from GitHub at
 				<ul>
-					<li> <a href="https://github.com/bjReplay/fitbit">https://github.com/bjReplay/fitbit</a>
+					<li> <a href="https://github.com/BJReplay/fitbit">https://github.com/BJReplay/fitbit</a>
 				</ul>
 				</p>
 
@@ -151,11 +151,6 @@ if (isset($_SESSION['fb_client_id'])) {
 		Based on an example &copy; 2017 Vivek Kapoor, <a href='https://exain.wordpress.com'>https://exain.wordpress.com</a>
 
 	</div> <!-- /container -->
-
-
-	<!-- <script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
-    $("#client_id").focus();
-	</script> -->
 
 </body>
 
