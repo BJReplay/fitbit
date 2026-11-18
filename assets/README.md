@@ -7,24 +7,24 @@ This also enables the tight Content Security Policy in place in the config.php C
 
 ## Dependencies
 
-- jQuery 1.12.4
-  - assets/js/jquery-1.12.4.min.js
+- jQuery 3.7.1
+  - assets/js/jquery-3.7.1.slim.min.js
 
 - Bootstrap 3.3.7
   - assets/css/bootstrap-3.3.7.min.css
   - assets/js/bootstrap-3.3.7.min.js
   - assets/fonts/glyphicons-halflings-regular.*
 
-- bootstrap-datepicker 1.3.0
-  - assets/css/bootstrap-datepicker-1.3.0.min.css
-  - assets/js/bootstrap-datepicker-1.3.0.min.js
+- bootstrap-datepicker 1.10.1
+  - assets/css/bootstrap-datepicker-1.10.1.min.css
+  - assets/js/bootstrap-datepicker-1.10.1.min.js
 
 - Highcharts
-  - assets/js/highcharts.js
-  - assets/js/modules/accessibility.js
-  - assets/js/modules/exporting.js
-  - assets/js/modules/export-data.js
-  - assets/js/modules/series-labels.js
+  - assets/js/highcharts-13.1.1.js
+  - assets/js/modules/accessibility-13.1.1.js
+  - assets/js/modules/exporting-13.1.1.js
+  - assets/js/modules/export-data-13.1.1.js
+  - assets/js/modules/series-labels-13.1.1.js
 
 The Highcharts core and modules must be taken from the same release.
 

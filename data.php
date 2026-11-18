@@ -64,7 +64,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	<title>Fitbit Heart Rate Data for <?php echo $fb_client_id; ?></title>
 
 	<link rel="stylesheet" href="/assets/css/bootstrap-3.3.7.min.css">
-	<link rel="stylesheet" href="/assets/css/bootstrap-datepicker.min.css">
+	<link rel="stylesheet" href="/assets/css/bootstrap-datepicker-1.10.1.min.css">
 	<link rel="stylesheet" href="/assets/css/highcharts-13.1.1-local.css">
 	<link rel="stylesheet" href="/assets/css/highcharts-palette-13.1.1-local.css">
 	<link rel="stylesheet" href="/assets/css/fitbit.css">
@@ -79,7 +79,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	<script src="/assets/js/modules/export-data-13.1.1-local.js"></script>
 	<script src="/assets/js/modules/accessibility-13.1.1-local.js"></script>
 
-	<script src="/assets/js/bootstrap-datepicker.min.js"></script>
+	<script src="/assets/js/bootstrap-datepicker-1.10.1.min.js"></script>
 
 	<link rel="icon" href="/assets/favicon32.ico" type="image/x-icon" />
 </head>
