@@ -69,7 +69,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	<link rel="stylesheet" href="/assets/css/highcharts-palette-13.1.1-local.css">
 	<link rel="stylesheet" href="/assets/css/fitbit.css">
 
-	<script src="/assets/js/jquery-1.12.4.min.js"></script>
+	<script src="/assets/js/jquery-3.7.1.slim.min.js"></script>
 
 	<script src="/assets/js/bootstrap-3.3.7.min.js"></script>
 
