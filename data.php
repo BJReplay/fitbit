@@ -72,7 +72,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 	<script src="/assets/js/bootstrap-3.3.7.min.js"></script>
 
-	<script src="/assets/js/highcharts.js"></script>
+	<script src="/assets/js/highcharts-bjshash.js"></script>
 	<script src="/assets/js/modules/series-label.js"></script>
 	<script src="/assets/js/modules/exporting.js"></script>
 	<script src="/assets/js/modules/export-data.js"></script>
