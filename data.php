@@ -72,11 +72,11 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 	<script src="/assets/js/bootstrap-3.3.7.min.js"></script>
 
-	<script src="/assets/js/highcharts-bjshash.js"></script>
-	<script src="/assets/js/modules/series-label.js"></script>
-	<script src="/assets/js/modules/exporting.js"></script>
-	<script src="/assets/js/modules/export-data.js"></script>
-	<script src="/assets/js/modules/accessibility.js"></script>
+	<script src="/assets/js/highcharts-13.1.1-local.js"></script>
+	<script src="/assets/js/modules/series-label-13.1.1-local.js"></script>
+	<script src="/assets/js/modules/exporting-13.1.1-local.js"></script>
+	<script src="/assets/js/modules/export-data-13.1.1-local.js"></script>
+	<script src="/assets/js/modules/accessibility-13.1.1-local.js"></script>
 
 	<script src="/assets/js/bootstrap-datepicker.min.js"></script>
 
