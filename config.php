@@ -7,7 +7,6 @@ $csp = implode('; ', [
     "default-src 'self'",
     "base-uri 'self'",
     "object-src 'none'",
-    "frame-ancestors 'none'",
     "form-action 'self'",
     "script-src 'self' 'nonce-{$cspNonce}' 'report-sha256'",
     "style-src 'self'",
@@ -15,14 +14,20 @@ $csp = implode('; ', [
     "font-src 'self'",
     "connect-src 'self'",
     "manifest-src 'self'",
+    "worker-src 'none'",
+    "frame-ancestors 'none'",
+    "frame-src 'none'",
     "upgrade-insecure-requests",
-    "report-uri https://sheppo.report-uri.com/r/d/csp/wizard; report-to wizard",
+    "block-all-mixed-content",
+    "report-uri https://sheppo.report-uri.com/r/d/csp/wizard", // Remove unless you want to use the report-uri service
+    "report-to wizard",
 ]);
 
 header("Content-Security-Policy-Report-Only: {$csp}");
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
-header('Reporting-Endpoints: default="https://sheppo.report-uri.com/a/d/g", wizard="https://sheppo.report-uri.com/a/d/g/wizard"');
+// Remove the following three lines unless you want to use the report-uri service
+header('Reporting-Endpoints: default="https://sheppo.report-uri.com/a/d/g", wizard="https://sheppo.report-uri.com/a/d/g/wizard"'); 
 header('Report-To: {"group":"default","max_age":31536000,"endpoints":[{"url":"https://sheppo.report-uri.com/a/d/g"}],"include_subdomains":true},{"group":"wizard","max_age":31536000,"endpoints":[{"url":"https://sheppo.report-uri.com/a/d/g/wizard"}],"include_subdomains":true}');
 header('NEL: {"report_to":"default","max_age":31536000,"include_subdomains":true}');
 include_once("functions.php");
