@@ -19,8 +19,12 @@ try {
 	$statement = mysqli_prepare($config_conn, 'SELECT fbjsondata FROM data_raw WHERE fbdate = ? AND fbuser = ? LIMIT 1');
 	mysqli_stmt_bind_param($statement, 'ss', $date, $fb_client_id);
 	mysqli_stmt_execute($statement);
+	$json = '';
 	mysqli_stmt_bind_result($statement, $json);
 	if (mysqli_stmt_fetch($statement)) {
+		if ($json === '') {
+			throw new UnexpectedValueException('Stored Fitbit JSON is empty.');
+		}
 		$series = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 		if (!is_array($series)) {
 			throw new UnexpectedValueException('Stored Fitbit JSON is not an object.');

@@ -1,6 +1,6 @@
 # Security Policy
 
-## You host your own software!
+## You host your own software
 
 As this is a host your own software repository, you are responsible for the security of your hosted software, the infrastructure you host it on, and access to your software and infrastructure.
 
