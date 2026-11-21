@@ -54,7 +54,6 @@ RUN composer dump-autoload \
     --no-dev \
     --classmap-authoritative
 
-
 #
 # Final runtime image
 #
