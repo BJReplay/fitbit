@@ -1,36 +1,170 @@
 <?php
 
-include_once("config.php");
+declare(strict_types=1);
 
-// Step 1 - Fitbit provides data in "#" which PHP cannot easily interpret
-// So doing some Javascript magic and redirecting it in a way that PHP can interpret it
-if (!isset($_GET['hash'])) {
+include_once 'config.php';
+require_once __DIR__ . '/google-oauth.php';
 
-?>
-	<html>
+/**
+ * Stops an invalid OAuth callback without exposing Google's response or
+ * credential information to the browser.
+ */
+function googleOAuthCallbackFailure(
+    string $logMessage
+): never {
+    unset(
+        $_SESSION['google_oauth_state'],
+        $_SESSION['google_oauth_code_verifier']
+    );
 
-	<body>
+    error_log($logMessage);
 
-		<script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
-			var hashdata = window.location.hash;
-			var data = hashdata.substr(1);
-			// location.href = 'token.php?hash=true&' + data;
-			window.location.replace('token.php?hash=true&' + data);
-		</script>
+    http_response_code(400);
 
-	</body>
-
-	</html>
-
-<?php
-} else {
-
-	// Step 2 - Now the data is in query string. Initialize Session and process it
-	$access_token = $_GET['access_token'];
-	setcookie("fb_access_token", base64_encode($access_token), time() + $config_expires_sec, "/", $config_base_host, true, true);
-	//	session_start();
-	$_SESSION['fb_access_token'] = $access_token;
-	header("Location: data.php"); // redirect to data review page
-	exit;
+    exit(
+        'Google Health authorisation failed. ' .
+        'Please return to the home page and try again.'
+    );
 }
-?>
+
+/*
+ * Google can return an OAuth error rather than an authorisation code, for
+ * example when the user declines consent.
+ */
+$error = $_GET['error'] ?? null;
+
+if (is_string($error) && $error !== '') {
+    googleOAuthCallbackFailure(
+        'Google OAuth returned error: ' . $error
+    );
+}
+
+$state = $_GET['state'] ?? null;
+
+$expectedState =
+    $_SESSION['google_oauth_state'] ??
+    null;
+
+if (
+    !is_string($state) ||
+    !is_string($expectedState) ||
+    $state === '' ||
+    $expectedState === '' ||
+    !hash_equals($expectedState, $state)
+) {
+    googleOAuthCallbackFailure(
+        'Google OAuth state validation failed.'
+    );
+}
+
+$codeVerifier =
+    $_SESSION['google_oauth_code_verifier'] ??
+    null;
+
+/*
+ * Consume state immediately after successful validation. Even if token
+ * exchange subsequently fails, the callback must not be replayable.
+ */
+unset(
+    $_SESSION['google_oauth_state'],
+    $_SESSION['google_oauth_code_verifier']
+);
+
+if (
+    !is_string($codeVerifier) ||
+    $codeVerifier === ''
+) {
+    googleOAuthCallbackFailure(
+        'Google OAuth PKCE verifier is unavailable.'
+    );
+}
+
+$code = $_GET['code'] ?? null;
+
+if (
+    !is_string($code) ||
+    $code === ''
+) {
+    googleOAuthCallbackFailure(
+        'Google OAuth did not return an authorisation code.'
+    );
+}
+
+try {
+    $client = createGoogleOAuthClient(
+        $config_redirect_uri
+    );
+
+    $token = $client->fetchAccessTokenWithAuthCode(
+        $code,
+        $codeVerifier
+    );
+
+    $error = $token['error'] ?? null;
+
+    if (
+        is_string($error) &&
+        $error !== ''
+    ) {
+        $description =
+            $token['error_description'] ??
+            $error;
+
+        throw new RuntimeException(
+            'Google OAuth token exchange failed: ' .
+            (string) $description
+        );
+    }
+
+    $accessToken =
+        $token['access_token'] ??
+        null;
+
+    if (
+        !is_string($accessToken) ||
+        $accessToken === ''
+    ) {
+        throw new UnexpectedValueException(
+            'Google did not return an access token.'
+        );
+    }
+
+    $refreshToken =
+        $token['refresh_token'] ??
+        null;
+
+    if (
+        !is_string($refreshToken) ||
+        $refreshToken === ''
+    ) {
+        throw new UnexpectedValueException(
+            'Google did not return a refresh token.'
+        );
+    }
+
+    saveGoogleOAuthToken(
+        $config_conn,
+        $token
+    );
+
+    session_regenerate_id(true);
+
+    header(
+        'Location: data.php',
+        true,
+        303
+    );
+
+    exit;
+} catch (Throwable $exception) {
+    error_log(
+        'Google OAuth callback failed: ' .
+        $exception->getMessage()
+    );
+
+    http_response_code(500);
+
+    exit(
+        'Unable to complete Google Health authorisation.'
+    );
+}
