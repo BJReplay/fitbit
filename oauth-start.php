@@ -26,13 +26,7 @@ try {
      * configures access_type=offline.
      */
     $client->setPrompt('consent');
-
-    /*
-     * Enable PKCE and generate the verifier before constructing
-     * the authorisation URL.
-     */
-    $client->setUsePkce(true);
-
+    
     $codeVerifier = $client
         ->getOAuth2Service()
         ->generateCodeVerifier();
