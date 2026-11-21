@@ -1,71 +1,57 @@
 <?php
 include_once("config.php");
 
-// Get date or set default for today
-$date = date("Y-m-d");
-if (isset($_GET['date'])) {
-	$date = $_GET['date'];
-}
-
-// VALIDATION
-// Step 1 - Date Validation
+$date = $_GET['date'] ?? date("Y-m-d");
 if (!validateDate("$date 00:00:00")) {
 	exit("Date is not valid. Please use YYYY-MM-DD format.");
 }
-
-// Step 2 - Do not proceed if Client ID is not set
 if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	exit("Client ID not available. Please <a href='index.php'>try again</a>");
-} else {
-	$fb_client_id = $_SESSION['fb_client_id'];
 }
-
-// filename for download
-$filename = "Fitbit-Intraday-Heartrate-$fb_client_id-$date.xls";
-
+$fb_client_id = $_SESSION['fb_client_id'];
+$safeFilenameClientId = preg_replace('/[^A-Za-z0-9._-]/', '_', $fb_client_id);
+$filename = "Fitbit-Intraday-Heartrate-$safeFilenameClientId-$date.xls";
 header("Content-Disposition: attachment; filename=\"$filename\"");
 header("Content-Type: application/vnd.ms-excel");
 
-// Query the data
-$q = "select id, fbjsondata from `data_raw` where fbdate='$date' and fbuser='$fb_client_id'";
-$result = mysqli_query($config_conn, $q);
-
-$seriesarr = array();
-$series = array('activities-heart-intraday' => array('dataset' => array()));
-if (mysqli_num_rows($result) > 0) {
-
-	$series_raw = mysqli_fetch_row($result);
-	$series = objectToArray(json_decode($series_raw[1]));
-
-	foreach ($series['activities-heart-intraday']['dataset'] as $key => $value) {
-		$time = $value['time'];
-		$hb = $value['value'];
-
-		$timearr = explode(":", $time);
-		$datearr = explode("-", $date);
-		$seriesarr[] = "[Date.UTC($datearr[0],$datearr[1]-1,$datearr[2],$timearr[0],$timearr[1],$timearr[2]), $hb]";
+$dataset = array();
+try {
+	$statement = mysqli_prepare($config_conn, 'SELECT fbjsondata FROM data_raw WHERE fbdate = ? AND fbuser = ? LIMIT 1');
+	mysqli_stmt_bind_param($statement, 'ss', $date, $fb_client_id);
+	mysqli_stmt_execute($statement);
+	mysqli_stmt_bind_result($statement, $json);
+	if (mysqli_stmt_fetch($statement)) {
+		$series = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+		if (!is_array($series)) {
+			throw new UnexpectedValueException('Stored Fitbit JSON is not an object.');
+		}
+		$dataset = $series['activities-heart-intraday']['dataset'] ?? array();
+		if (!is_array($dataset)) {
+			throw new UnexpectedValueException('The intraday dataset is not an array.');
+		}
 	}
+	mysqli_stmt_close($statement);
+} catch (JsonException | UnexpectedValueException | mysqli_sql_exception $exception) {
+	error_log(sprintf('Unable to export Fitbit data for %s: %s', $date, $exception->getMessage()));
+	$dataset = array();
 }
-
 ?>
-
 <table class="table table-bordered" id='hrdata'>
 	<thead>
 		<th>Date &amp; Time</th>
 		<th>Heart Rate</th>
 	</thead>
-
-
 	<?php
-
-	if (mysqli_num_rows($result) == '0') {
-		echo "<tr><td colspan=2 style='height:200px;'>No data available</td></tr>\n";
+	if ($dataset === array()) {
+		echo '<tr><td colspan="2">No data available</td></tr>' . "\n";
 	}
-
-	foreach ($series['activities-heart-intraday']['dataset'] as $key => $value) {
-		echo "<tr><td>$date $value[time]</td><td>$value[value]</td></tr>\n";
+	foreach ($dataset as $value) {
+		if (!is_array($value)) {
+			continue;
+		}
+		$time = htmlspecialchars((string) ($value['time'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+		$heartRate = htmlspecialchars((string) ($value['value'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+		echo "<tr><td>$date $time</td><td>$heartRate</td></tr>\n";
 	}
-
 	?>
-
 </table>

@@ -34,21 +34,35 @@ header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 include_once("functions.php");
 
-//below  will give the whole connectionstring in a single string
-$conn = getenv("MYSQLCONNSTR_localdb");
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-//Let's split it and decorate it in an array
-$conarr2 = explode(";", $conn);
-$conarr = array();
-foreach ($conarr2 as $key => $value) {
-    $k = substr($value, 0, strpos($value, '='));
-    $conarr[$k] = substr($value, strpos($value, '=') + 1);
+// Retrieve and validate the database connection string.
+$conn = getenv("MYSQLCONNSTR_localdb");
+if (!is_string($conn) || trim($conn) === '') {
+    error_log('MYSQLCONNSTR_localdb is not configured.');
+    http_response_code(503);
+    exit('The service is temporarily unavailable.');
 }
 
-//$host = $conarr["Server"]; 
-//$user = $conarr["User Id"]; 
-//$pass = $conarr["Password"];
-//$dbname = $conarr["Database"];
+$conarr = array();
+foreach (explode(";", $conn) as $value) {
+    $separator = strpos($value, '=');
+    if ($separator === false) {
+        continue;
+    }
+    $key = trim(substr($value, 0, $separator));
+    if ($key !== '') {
+        $conarr[$key] = substr($value, $separator + 1);
+    }
+}
+
+foreach (array('Data Source', 'User Id', 'Password', 'Database') as $requiredKey) {
+    if (!array_key_exists($requiredKey, $conarr)) {
+        error_log(sprintf('MYSQLCONNSTR_localdb is missing the "%s" field.', $requiredKey));
+        http_response_code(503);
+        exit('The service is temporarily unavailable.');
+    }
+}
 
 $host = $conarr["Data Source"];
 $user = $conarr["User Id"];
@@ -56,24 +70,17 @@ $pass = $conarr["Password"];
 $dbname = $conarr["Database"];
 
 // Other Configuration Parameters
-
-// Replace the Redirect URL with your setup
 $config_base_host = getenv("WEBSITE_HOSTNAME");
 $config_redirect_uri = "https://" . $config_base_host . "/token.php";
+$config_scope = "heartrate profile";
+$config_expires_sec = 30 * 24 * 60 * 60;
+$config_api_url = "https://api.fitbit.com/1/user/-/activities/heart/date";
 
-
-$config_scope = "heartrate profile"; // only getting heartrate and profile data
-$config_expires_sec = 30 * 24 * 60 * 60; // 30 Days
-$config_api_url = "https://api.fitbit.com/1/user/-/activities/heart/date"; // please see getdata.php /$date/1d/1sec/time/00:00/23:59.json";
-
-// Connecting to Database
-//$config_conn = mysqli_init();
-//$config_conn->options(MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, true);
-//$config_conn->ssl_set(NULL, NULL, "/etc/ssl/certs/ca-certificates.crt", NULL, NULL);
-//$config_conn->real_connect("$host","$user","$pass","$dbname");
-//$mysqli->close();
-$config_conn = mysqli_connect("$host", "$user", "$pass", "$dbname");
-
-if (!$config_conn) {
-    exit("No MySQL Connection Established.<BR><BR>" . mysqli_connect_error());
+try {
+    $config_conn = mysqli_connect($host, $user, $pass, $dbname);
+    mysqli_set_charset($config_conn, 'utf8mb4');
+} catch (mysqli_sql_exception $exception) {
+    error_log('Database connection failed: ' . $exception->getMessage());
+    http_response_code(503);
+    exit('The service is temporarily unavailable.');
 }
