@@ -3,11 +3,16 @@ session_start();
 
 $cspNonce = base64_encode(random_bytes(18));
 
+$config_oauth_url = "https://www.fitbit.com/oauth2/authorize";
+$oauthOrigin = parse_url($config_oauth_url, PHP_URL_SCHEME)
+    . '://'
+    . parse_url($config_oauth_url, PHP_URL_HOST);
+
 $csp = implode('; ', [
     "default-src 'self'",
     "base-uri 'self'",
     "object-src 'none'",
-    "form-action 'self'",
+    "form-action 'self' {$oauthOrigin}",
     "script-src 'self' 'nonce-{$cspNonce}'",
     "style-src 'self'",
     "img-src 'self' data: blob:",
@@ -56,7 +61,7 @@ $dbname = $conarr["Database"];
 $config_base_host = getenv("WEBSITE_HOSTNAME");
 $config_redirect_uri = "https://" . $config_base_host . "/token.php";
 
-$config_oauth_url = "https://www.fitbit.com/oauth2/authorize";
+
 $config_scope = "heartrate profile"; // only getting heartrate and profile data
 $config_expires_sec = 30 * 24 * 60 * 60; // 30 Days
 $config_api_url = "https://api.fitbit.com/1/user/-/activities/heart/date"; // please see getdata.php /$date/1d/1sec/time/00:00/23:59.json";
