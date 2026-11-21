@@ -27,6 +27,7 @@
         "MAXREDIRS",
         "MYSQLCONNSTR",
         "mysqli",
+        "nosniff",
         "RETURNTRANSFER",
         "seriesarr",
         "tempnext",
