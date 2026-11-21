@@ -6,8 +6,8 @@ include_once 'config.php';
 require_once __DIR__ . '/google-oauth.php';
 
 /**
- * Stops an invalid OAuth callback without exposing Google's response or
- * credential information to the browser.
+ * Fails an invalid OAuth callback without exposing OAuth credentials
+ * or Google's response details to the browser.
  */
 function googleOAuthCallbackFailure(
     string $logMessage
@@ -28,17 +28,24 @@ function googleOAuthCallbackFailure(
 }
 
 /*
- * Google can return an OAuth error rather than an authorisation code, for
- * example when the user declines consent.
+ * Google may return an OAuth error instead of an authorisation code,
+ * for example if consent is declined.
  */
 $error = $_GET['error'] ?? null;
 
-if (is_string($error) && $error !== '') {
+if (
+    is_string($error) &&
+    $error !== ''
+) {
     googleOAuthCallbackFailure(
-        'Google OAuth returned error: ' . $error
+        'Google OAuth returned error: ' .
+        $error
     );
 }
 
+/*
+ * Validate the state sent back by Google.
+ */
 $state = $_GET['state'] ?? null;
 
 $expectedState =
@@ -57,18 +64,12 @@ if (
     );
 }
 
+/*
+ * Retrieve the PKCE verifier that belongs to this OAuth attempt.
+ */
 $codeVerifier =
     $_SESSION['google_oauth_code_verifier'] ??
     null;
-
-/*
- * Consume state immediately after successful validation. Even if token
- * exchange subsequently fails, the callback must not be replayable.
- */
-unset(
-    $_SESSION['google_oauth_state'],
-    $_SESSION['google_oauth_code_verifier']
-);
 
 if (
     !is_string($codeVerifier) ||
@@ -79,6 +80,9 @@ if (
     );
 }
 
+/*
+ * Get the short-lived authorisation code.
+ */
 $code = $_GET['code'] ?? null;
 
 if (
@@ -90,25 +94,39 @@ if (
     );
 }
 
+/*
+ * State and PKCE verifier are single-use values.
+ *
+ * Keep the local verifier variable for the token exchange, but remove
+ * both values from the session before the exchange takes place.
+ */
+unset(
+    $_SESSION['google_oauth_state'],
+    $_SESSION['google_oauth_code_verifier']
+);
+
 try {
     $client = createGoogleOAuthClient(
         $config_redirect_uri
     );
 
-    $token = $client->fetchAccessTokenWithAuthCode(
-        $code,
-        $codeVerifier
-    );
+    $token =
+        $client->fetchAccessTokenWithAuthCode(
+            $code,
+            $codeVerifier
+        );
 
-    $error = $token['error'] ?? null;
+    $tokenError =
+        $token['error'] ??
+        null;
 
     if (
-        is_string($error) &&
-        $error !== ''
+        is_string($tokenError) &&
+        $tokenError !== ''
     ) {
         $description =
             $token['error_description'] ??
-            $error;
+            $tokenError;
 
         throw new RuntimeException(
             'Google OAuth token exchange failed: ' .
@@ -147,8 +165,15 @@ try {
         $token
     );
 
+    /*
+     * Rotate the session after successfully completing authorisation.
+     */
     session_regenerate_id(true);
 
+    /*
+     * data.php is still Fitbit-based, but redirecting there preserves
+     * existing behaviour while we test the OAuth plumbing.
+     */
     header(
         'Location: data.php',
         true,

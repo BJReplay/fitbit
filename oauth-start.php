@@ -6,35 +6,31 @@ include_once 'config.php';
 require_once __DIR__ . '/google-oauth.php';
 
 try {
-    /*
-     * Rotate the existing PHP session ID before storing ephemeral OAuth
-     * credentials in the session.
-     */
     session_regenerate_id(true);
 
-    $state = bin2hex(
-        random_bytes(32)
-    );
-
+    /*
+     * Protect the callback against CSRF.
+     */
+    $state = bin2hex(random_bytes(32));
     $_SESSION['google_oauth_state'] = $state;
 
     $client = createGoogleOAuthClient(
-    $config_redirect_uri
+        $config_redirect_uri
     );
 
     $client->setState($state);
 
     /*
-    * Force consent during this initial connection so that we can obtain
-    * offline credentials. The client factory already specifies
-    * access_type=offline.
-    */
+     * Request a new consent grant so that this initial connection
+     * returns a refresh token. createGoogleOAuthClient() already
+     * configures access_type=offline.
+     */
     $client->setPrompt('consent');
 
     /*
-    * Use PKCE in addition to the confidential web application's
-    * client credentials.
-    */
+     * Enable PKCE and generate the verifier before constructing
+     * the authorisation URL.
+     */
     $client->setUsePkce(true);
 
     $codeVerifier = $client
