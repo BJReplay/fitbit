@@ -10,8 +10,12 @@ if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
 }
 
 if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
-	$fb_access_token = base64_decode($_COOKIE['fb_access_token']);
-	$_SESSION['fb_access_token'] = $fb_access_token;
+	$fb_access_token = base64_decode($_COOKIE['fb_access_token'], true);
+	if ($fb_access_token !== false && $fb_access_token !== '') {
+		$_SESSION['fb_access_token'] = $fb_access_token;
+	} else {
+		unset($_SESSION['fb_access_token']);
+	}
 }
 
 // If FB Client ID is provided, save it in session and skip authentication

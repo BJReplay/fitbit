@@ -11,8 +11,12 @@ if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
 }
 
 if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
-	$fb_access_token = base64_decode($_COOKIE['fb_access_token']);
-	$_SESSION['fb_access_token'] = $fb_access_token;
+	$fb_access_token = base64_decode($_COOKIE['fb_access_token'], true);
+	if ($fb_access_token !== false && $fb_access_token !== '') {
+		$_SESSION['fb_access_token'] = $fb_access_token;
+	} else {
+		unset($_SESSION['fb_access_token']);
+	}
 }
 
 // VALIDATE THE VARIABLES
@@ -63,22 +67,43 @@ $headers = array("Authorization: Bearer $access_token");
 // Step 2 - Get from Fitbit
 $data = curl($url, $headers);
 
-// Step 3 - Sanitize
-$date = safe($date);
-$user = safe($fb_client_id);
-$data = safe($data);
-
-// Step 4 - Delete existing data
-$q = "delete from `data_raw` where `data_raw`.`fbuser` = '$user' and `data_raw`.`fbdate`='$date'";
-if (mysqli_query($config_conn, $q)) {
-	// Step 5 - Insert into database
-	$q = "insert into `data_raw` set fbuser = '$user', fbdate='$date', fbjsondata='$data'";
-	if (mysqli_query($config_conn, $q)) {
-		header("Location: data.php?date=$next&rand=" . rand());
-		mysqli_close($config_conn);
-	} else {
-		exit("There was an error synchronising with Fitbit: " . mysqli_error($config_conn));
-	}
-} else {
-	exit("There was an error synchronising with Fitbit: " . mysqli_error($config_conn));
+if (!is_string($data) || $data === '' || $data === 'No Content') {
+	error_log(sprintf('Fitbit returned an empty response for %s.', $date));
+	http_response_code(502);
+	exit('Fitbit returned an empty response.');
 }
+
+try {
+	$decoded = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+	if (!is_array($decoded)) {
+		throw new UnexpectedValueException('Fitbit returned JSON that is not an object.');
+	}
+} catch (JsonException | UnexpectedValueException $exception) {
+	error_log(sprintf('Invalid Fitbit response for %s: %s', $date, $exception->getMessage()));
+	http_response_code(502);
+	exit('Fitbit returned an invalid response.');
+}
+
+$user = trim($fb_client_id);
+try {
+	mysqli_begin_transaction($config_conn);
+	$delete = mysqli_prepare($config_conn, 'DELETE FROM data_raw WHERE fbuser = ? AND fbdate = ?');
+	mysqli_stmt_bind_param($delete, 'ss', $user, $date);
+	mysqli_stmt_execute($delete);
+	mysqli_stmt_close($delete);
+
+	$insert = mysqli_prepare($config_conn, 'INSERT INTO data_raw (fbuser, fbdate, fbjsondata) VALUES (?, ?, ?)');
+	mysqli_stmt_bind_param($insert, 'sss', $user, $date, $data);
+	mysqli_stmt_execute($insert);
+	mysqli_stmt_close($insert);
+	mysqli_commit($config_conn);
+} catch (mysqli_sql_exception $exception) {
+	mysqli_rollback($config_conn);
+	error_log(sprintf('Unable to store Fitbit data for %s: %s', $date, $exception->getMessage()));
+	http_response_code(500);
+	exit('There was an error storing the Fitbit data.');
+}
+
+mysqli_close($config_conn);
+header('Location: data.php?date=' . rawurlencode($next) . '&rand=' . random_int(0, PHP_INT_MAX));
+exit;

@@ -18,8 +18,12 @@ if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
 }
 
 if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
-	$fb_access_token = base64_decode($_COOKIE['fb_access_token']);
-	$_SESSION['fb_access_token'] = $fb_access_token;
+	$fb_access_token = base64_decode($_COOKIE['fb_access_token'], true);
+	if ($fb_access_token !== false && $fb_access_token !== '') {
+		$_SESSION['fb_access_token'] = $fb_access_token;
+	} else {
+		unset($_SESSION['fb_access_token']);
+	}
 }
 
 // VALIDATION
@@ -140,29 +144,58 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		<?php
 
 		// Query the data. Get the raw data and process it
-		$q = "select id, fbjsondata from `data_raw` where fbdate='$date' and fbuser='$fb_client_id'";
-		$result = mysqli_query($config_conn, $q);
-
 		$seriesarr = array();
+		$dataset = array();
+		$heartRateZones = array();
+		$rhr = "Unknown";
 
-		if (mysqli_num_rows($result) > 0) {
+		try {
+			$statement = mysqli_prepare($config_conn, 'SELECT fbjsondata FROM data_raw WHERE fbdate = ? AND fbuser = ? LIMIT 1');
+			mysqli_stmt_bind_param($statement, 'ss', $date, $fb_client_id);
+			mysqli_stmt_execute($statement);
+			mysqli_stmt_bind_result($statement, $json);
 
-			$series_raw = mysqli_fetch_row($result);
-			$series = objectToArray(json_decode($series_raw[1]));
-
-			if (!is_null($series)) {
-				foreach ($series['activities-heart-intraday']['dataset'] as $key => $value) {
-					$time = $value['time'];
-					$hb = $value['value'];
-
-					$timearr = explode(":", $time);
-					$datearr = explode("-", $date);
-					$seriesarr[] = "[Date.UTC($datearr[0],$datearr[1]-1,$datearr[2],$timearr[0],$timearr[1],$timearr[2]), $hb]";
+			if (mysqli_stmt_fetch($statement)) {
+				$series = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+				if (!is_array($series)) {
+					throw new UnexpectedValueException('Stored Fitbit JSON is not an object.');
+				}
+				$dataset = $series['activities-heart-intraday']['dataset'] ?? array();
+				$hbsummary = $series['activities-heart'][0]['value'] ?? array();
+				if (!is_array($dataset)) {
+					throw new UnexpectedValueException('The intraday dataset is not an array.');
+				}
+				if (!is_array($hbsummary)) {
+					$hbsummary = array();
+				}
+				$heartRateZones = $hbsummary['heartRateZones'] ?? array();
+				if (!is_array($heartRateZones)) {
+					$heartRateZones = array();
+				}
+				if (isset($hbsummary['restingHeartRate'])) {
+					$rhr = (string) $hbsummary['restingHeartRate'];
 				}
 			}
+			mysqli_stmt_close($statement);
+		} catch (JsonException | UnexpectedValueException | mysqli_sql_exception $exception) {
+			error_log(sprintf('Unable to load Fitbit data for %s: %s', $date, $exception->getMessage()));
+			$dataset = array();
+			$heartRateZones = array();
 		}
 
-
+		$datearr = explode('-', $date);
+		foreach ($dataset as $value) {
+			$time = $value['time'] ?? null;
+			$hb = $value['value'] ?? null;
+			if (!is_string($time) || !is_numeric($hb)) {
+				continue;
+			}
+			$timearr = explode(':', $time);
+			if (count($timearr) !== 3 || count($datearr) !== 3) {
+				continue;
+			}
+			$seriesarr[] = sprintf('[Date.UTC(%d,%d,%d,%d,%d,%d), %d]', (int) $datearr[0], (int) $datearr[1] - 1, (int) $datearr[2], (int) $timearr[0], (int) $timearr[1], (int) $timearr[2], (int) $hb);
+		}
 		// Print the data / Show Chart
 		?>
 
@@ -234,16 +267,6 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 				<h4>Heart Rate Summary</h4>
 			</div>
 
-			<?php
-			if (mysqli_num_rows($result) > 0) {
-				if (!is_null($series)) {
-					$hbsummary = $series['activities-heart'][0]['value'];
-					$rhr = isset($hbsummary['restingHeartRate']) ? $hbsummary['restingHeartRate'] : "Unknown";
-				}
-			} else {
-				$rhr = "Unknown";
-			}
-			?>
 
 			<div class="col-md-3">
 				<h4>Resting Heart Rate: <?php echo $rhr; ?></h4>
@@ -272,21 +295,17 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 					</thead>
 
 					<?php
-					if (mysqli_num_rows($result) > 0) {
-						if (!is_null($series)) {
-							$i = 0;
-							$color = array('active', 'success', 'warning', 'danger', 'active', 'active', 'active', 'active');
-							foreach ($hbsummary['heartRateZones'] as $hbsummarydata1) {
-
-								echo "<tr class='$color[$i]'>";
-								echo "<td>" . $hbsummarydata1['name'] . "</td>\n";
-								echo "<td>" . $hbsummarydata1['minutes'] . "</td>\n";
-								echo "<td>" . $hbsummarydata1['caloriesOut'] . "</td>\n";
-								echo "<td>" . $hbsummarydata1['min'] . '-' . $hbsummarydata1['max'] . "</td>\n";
-								echo "</tr>";
-								$i++;
-							}
+					$colors = array('active', 'success', 'warning', 'danger');
+					foreach ($heartRateZones as $i => $zone) {
+						if (!is_array($zone)) {
+							continue;
 						}
+						$class = $colors[$i % count($colors)];
+						$name = htmlspecialchars((string) ($zone['name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+						$minutes = htmlspecialchars((string) ($zone['minutes'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+						$calories = htmlspecialchars((string) ($zone['caloriesOut'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+						$range = htmlspecialchars((string) ($zone['min'] ?? '') . '-' . (string) ($zone['max'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+						echo "<tr class="$class"><td>$name</td><td>$minutes</td><td>$calories</td><td>$range</td></tr>\n";
 					}
 					?>
 				</table>
@@ -305,17 +324,17 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 
 
 					<?php
-					if (mysqli_num_rows($result) == '0') {
+					if ($dataset === array()) {
 						echo '<tr><td colspan="2" class="no-data">No data available</td></tr>' . "\n";
 					}
-					if (mysqli_num_rows($result) > 0) {
-						if (!is_null($series)) {
-							foreach ($series['activities-heart-intraday']['dataset'] as $key => $value) {
-								echo "<tr><td>$date $value[time]</td><td>$value[value]</td></tr>\n";
-							}
+					foreach ($dataset as $value) {
+						if (!is_array($value)) {
+							continue;
 						}
+						$time = htmlspecialchars((string) ($value['time'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+						$heartRate = htmlspecialchars((string) ($value['value'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+						echo "<tr><td>$date $time</td><td>$heartRate</td></tr>\n";
 					}
-
 					?>
 
 				</table>
