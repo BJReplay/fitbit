@@ -10,7 +10,7 @@ const GOOGLE_HEALTH_API_BASE =
     'https://health.googleapis.com/v4';
 
 const GOOGLE_HEALTH_HEART_RATE_PAGE_SIZE =
-    1000;
+    10000;
 
 /**
  * Returns the access token currently held by an authorised Google client.
