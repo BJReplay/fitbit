@@ -7,10 +7,10 @@ use Google\Client;
 require_once __DIR__ . '/google-oauth.php';
 
 const GOOGLE_HEALTH_API_BASE =
-    'https://health.googleapis.com/v4';
+'https://health.googleapis.com/v4';
 
 const GOOGLE_HEALTH_HEART_RATE_PAGE_SIZE =
-    10000;
+10000;
 
 /**
  * Returns the access token currently held by an authorised Google client.
@@ -56,24 +56,24 @@ function googleHealthGet(
             [
                 'headers' => [
                     'Authorization' =>
-                        'Bearer ' .
+                    'Bearer ' .
                         googleHealthAccessToken(
                             $client
                         ),
 
                     'Accept' =>
-                        'application/json',
+                    'application/json',
                 ],
 
                 'query' =>
-                    $query,
+                $query,
 
                 /*
                  * Preserve non-success responses so that the Google error
                  * body can be inspected and included in our exception.
                  */
                 'http_errors' =>
-                    false,
+                false,
             ]
         );
 
@@ -119,15 +119,15 @@ function googleHealthGet(
             is_array($error) &&
             isset($error['message']) &&
             is_string($error['message'])
-                ? $error['message']
-                : 'No error message returned.';
+            ? $error['message']
+            : 'No error message returned.';
 
         $status =
             is_array($error) &&
             isset($error['status']) &&
             is_string($error['status'])
-                ? $error['status']
-                : 'UNKNOWN';
+            ? $error['status']
+            : 'UNKNOWN';
 
         throw new RuntimeException(
             sprintf(
@@ -165,20 +165,20 @@ function googleHealthPost(
         [
             'headers' => [
                 'Authorization' =>
-                    'Bearer ' . $accessToken,
+                'Bearer ' . $accessToken,
 
                 'Accept' =>
-                    'application/json',
+                'application/json',
 
                 'Content-Type' =>
-                    'application/json',
+                'application/json',
             ],
 
             'json' =>
-                $requestBody,
+            $requestBody,
 
             'http_errors' =>
-                false,
+            false,
         ]
     );
 
@@ -220,15 +220,15 @@ function googleHealthPost(
             is_array($error) &&
             isset($error['message']) &&
             is_string($error['message'])
-                ? $error['message']
-                : 'No error message returned.';
+            ? $error['message']
+            : 'No error message returned.';
 
         $status =
             is_array($error) &&
             isset($error['status']) &&
             is_string($error['status'])
-                ? $error['status']
-                : 'UNKNOWN';
+            ? $error['status']
+            : 'UNKNOWN';
 
         throw new RuntimeException(
             sprintf(
@@ -262,7 +262,7 @@ function googleHealthIdentity(
     $identity = googleHealthGet(
         $client,
         GOOGLE_HEALTH_API_BASE .
-        '/users/me/identity'
+            '/users/me/identity'
     );
 
     $name =
@@ -303,13 +303,13 @@ function googleHealthIdentity(
 
     return [
         'name' =>
-            $name,
+        $name,
 
         'legacyUserId' =>
-            $legacyUserId,
+        $legacyUserId,
 
         'healthUserId' =>
-            $healthUserId,
+        $healthUserId,
     ];
 }
 
@@ -378,7 +378,7 @@ function googleHealthHeartRateDateFilter(
 
     return sprintf(
         'heart_rate.sample_time.civil_time >= "%s" ' .
-        'AND heart_rate.sample_time.civil_time < "%s"',
+            'AND heart_rate.sample_time.civil_time < "%s"',
         $start->format('Y-m-d'),
         $end->format('Y-m-d')
     );
@@ -528,15 +528,15 @@ function googleHealthHeartRateSample(
 
     return [
         'timestamp' =>
-            $civilDateString .
+        $civilDateString .
             ' ' .
             $civilTimeString,
 
         'time' =>
-            $civilTimeString,
+        $civilTimeString,
 
         'value' =>
-            $beatsPerMinute,
+        $beatsPerMinute,
     ];
 }
 
@@ -570,10 +570,10 @@ function googleHealthHeartRateDataset(
     do {
         $query = [
             'pageSize' =>
-                GOOGLE_HEALTH_HEART_RATE_PAGE_SIZE,
+            GOOGLE_HEALTH_HEART_RATE_PAGE_SIZE,
 
             'filter' =>
-                $filter,
+            $filter,
         ];
 
         if (
@@ -634,10 +634,10 @@ function googleHealthHeartRateDataset(
              */
             $dataset[] = [
                 'time' =>
-                    $sample['time'],
+                $sample['time'],
 
                 'value' =>
-                    $sample['value'],
+                $sample['value'],
             ];
         }
 
@@ -726,8 +726,8 @@ function googleHealthDailyRestingHeartRate(
     $response = googleHealthGet(
         $client,
         GOOGLE_HEALTH_API_BASE .
-        '/users/me/dataTypes/' .
-        'daily-resting-heart-rate/dataPoints',
+            '/users/me/dataTypes/' .
+            'daily-resting-heart-rate/dataPoints',
         [
             'pageSize' => 10,
             'filter' => googleHealthDailyDateFilter(
@@ -785,19 +785,19 @@ function googleHealthHeartRateZoneName(
 ): string {
     return match ($zoneType) {
         'LIGHT' =>
-            'Light',
+        'Light',
 
         'MODERATE' =>
-            'Moderate',
+        'Moderate',
 
         'VIGOROUS' =>
-            'Vigorous',
+        'Vigorous',
 
         'PEAK' =>
-            'Peak',
+        'Peak',
 
         default =>
-            'Unknown',
+        'Unknown',
     };
 }
 
@@ -821,8 +821,8 @@ function googleHealthDailyHeartRateZones(
     $response = googleHealthGet(
         $client,
         GOOGLE_HEALTH_API_BASE .
-        '/users/me/dataTypes/' .
-        'daily-heart-rate-zones/dataPoints',
+            '/users/me/dataTypes/' .
+            'daily-heart-rate-zones/dataPoints',
         [
             'pageSize' => 10,
             'filter' => googleHealthDailyDateFilter(
@@ -886,18 +886,18 @@ function googleHealthDailyHeartRateZones(
 
             $zones[] = [
                 'name' =>
-                    googleHealthHeartRateZoneName(
-                        $zoneType
-                    ),
+                googleHealthHeartRateZoneName(
+                    $zoneType
+                ),
 
                 'minutes' =>
-                    $zoneMinutes[$zoneType] ?? 0,
+                $zoneMinutes[$zoneType] ?? 0,
 
                 'min' =>
-                    (int) $min,
+                (int) $min,
 
                 'max' =>
-                    (int) $max,
+                (int) $max,
             ];
         }
 
@@ -963,21 +963,21 @@ function googleHealthDailyZoneMinutes(
     $response = googleHealthPost(
         $client,
         GOOGLE_HEALTH_API_BASE .
-        '/users/me/dataTypes/' .
-        'time-in-heart-rate-zone/' .
-        'dataPoints:dailyRollUp',
+            '/users/me/dataTypes/' .
+            'time-in-heart-rate-zone/' .
+            'dataPoints:dailyRollUp',
         [
             'range' => [
                 'start' => [
                     'date' => [
                         'year' =>
-                            (int) $startDate->format('Y'),
+                        (int) $startDate->format('Y'),
 
                         'month' =>
-                            (int) $startDate->format('m'),
+                        (int) $startDate->format('m'),
 
                         'day' =>
-                            (int) $startDate->format('d'),
+                        (int) $startDate->format('d'),
                     ],
 
                     'time' => [
@@ -990,13 +990,13 @@ function googleHealthDailyZoneMinutes(
                 'end' => [
                     'date' => [
                         'year' =>
-                            (int) $endDate->format('Y'),
+                        (int) $endDate->format('Y'),
 
                         'month' =>
-                            (int) $endDate->format('m'),
+                        (int) $endDate->format('m'),
 
                         'day' =>
-                            (int) $endDate->format('d'),
+                        (int) $endDate->format('d'),
                     ],
 
                     'time' => [
@@ -1012,7 +1012,7 @@ function googleHealthDailyZoneMinutes(
             'pageSize' => 10,
 
             'dataSourceFamily' =>
-                'users/me/dataSourceFamilies/all-sources',
+            'users/me/dataSourceFamilies/all-sources',
         ]
     );
 
@@ -1108,7 +1108,7 @@ function googleHealthLegacyHeartRateDocument(
 ): array {
     $summary = [
         'heartRateZones' =>
-            $heartRateZones,
+        $heartRateZones,
     ];
 
     if ($restingHeartRate !== null) {
@@ -1120,22 +1120,22 @@ function googleHealthLegacyHeartRateDocument(
         'activities-heart' => [
             [
                 'dateTime' =>
-                    $date,
+                $date,
 
                 'value' =>
-                    $summary,
+                $summary,
             ],
         ],
 
         'activities-heart-intraday' => [
             'dataset' =>
-                $dataset,
+            $dataset,
 
             'datasetInterval' =>
-                1,
+            1,
 
             'datasetType' =>
-                'second',
+            'second',
         ],
     ];
 }
@@ -1190,17 +1190,17 @@ function googleHealthHeartRateDocument(
 
     return [
         'user' =>
-            $healthUserId,
+        $healthUserId,
 
         'identity' =>
-            $identity,
+        $identity,
 
         'document' =>
-            googleHealthLegacyHeartRateDocument(
-                $date,
-                $dataset,
-                $restingHeartRate,
-                $heartRateZones
-            ),
+        googleHealthLegacyHeartRateDocument(
+            $date,
+            $dataset,
+            $restingHeartRate,
+            $heartRateZones
+        ),
     ];
 }

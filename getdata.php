@@ -11,10 +11,8 @@ if (
     !is_string($date) ||
     !validateDate($date . ' 00:00:00')
 ) {
-    exit(
-        'Date is not in a valid format. ' .
-        'Please use YYYY-MM-DD format.'
-    );
+    exit('Date is not in a valid format. ' .
+        'Please use YYYY-MM-DD format.');
 }
 
 $next = $date;
@@ -57,7 +55,7 @@ try {
     $json = json_encode(
         $document,
         JSON_THROW_ON_ERROR |
-        JSON_UNESCAPED_SLASHES
+            JSON_UNESCAPED_SLASHES
     );
 
     $_SESSION['google_health_user_id'] =
@@ -141,9 +139,7 @@ try {
 
     http_response_code(502);
 
-    exit(
-        'Unable to retrieve Google Health heart-rate data.'
-    );
+    exit('Unable to retrieve Google Health heart-rate data.');
 }
 
 mysqli_close(
@@ -152,12 +148,12 @@ mysqli_close(
 
 header(
     'Location: data.php?date=' .
-    rawurlencode($next) .
-    '&rand=' .
-    random_int(
-        0,
-        PHP_INT_MAX
-    )
+        rawurlencode($next) .
+        '&rand=' .
+        random_int(
+            0,
+            PHP_INT_MAX
+        )
 );
 
 exit;

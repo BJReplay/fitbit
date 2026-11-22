@@ -7,11 +7,11 @@ use Google\Client;
 require_once __DIR__ . '/vendor/autoload.php';
 
 const GOOGLE_HEALTH_READ_SCOPE =
-    'https://www.googleapis.com/auth/' .
+'https://www.googleapis.com/auth/' .
     'googlehealth.health_metrics_and_measurements.readonly';
 
 const GOOGLE_HEALTH_ACTIVITY_READ_SCOPE =
-    'https://www.googleapis.com/auth/' .
+'https://www.googleapis.com/auth/' .
     'googlehealth.activity_and_fitness.readonly';
 
 /**
@@ -108,7 +108,7 @@ function googleOAuthEncryptionKey(): string
     ) {
         throw new RuntimeException(
             'GOOGLE_OAUTH_ENCRYPTION_KEY must be a ' .
-            'Base64-encoded 32-byte key.'
+                'Base64-encoded 32-byte key.'
         );
     }
 
@@ -134,7 +134,7 @@ function encryptGoogleOAuthToken(array $token): string
     $json = json_encode(
         $token,
         JSON_THROW_ON_ERROR |
-        JSON_UNESCAPED_SLASHES
+            JSON_UNESCAPED_SLASHES
     );
 
     $nonce = random_bytes(
@@ -397,7 +397,7 @@ function authorisedGoogleOAuthClient(
     ) {
         throw new RuntimeException(
             'The Google OAuth refresh token is unavailable. ' .
-            'Google Health must be authorised again.'
+                'Google Health must be authorised again.'
         );
     }
 
@@ -420,7 +420,7 @@ function authorisedGoogleOAuthClient(
 
         throw new RuntimeException(
             'Unable to refresh the Google access token: ' .
-            (string) $description
+                (string) $description
         );
     }
 

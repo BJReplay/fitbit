@@ -21,7 +21,7 @@ try {
 } catch (Throwable $exception) {
     error_log(
         'Unable to initialise Google Health connection: '
-        . $exception->getMessage()
+            . $exception->getMessage()
     );
 
     $connectionError =
@@ -43,226 +43,219 @@ $safeConnectionError = htmlspecialchars(
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
+        content="width=device-width, initial-scale=1">
 
     <title>Google Health Heart Rate Intraday Data</title>
 
     <link
         rel="stylesheet"
-        href="/assets/css/bootstrap-3.3.7.min.css"
-    >
+        href="/assets/css/bootstrap-3.3.7.min.css">
 
     <link
         rel="stylesheet"
-        href="/assets/css/fitbit.css"
-    >
+        href="/assets/css/fitbit.css">
 
     <link
         rel="icon"
         href="/assets/favicon32.ico"
-        type="image/x-icon"
-    >
+        type="image/x-icon">
 </head>
 
 <body>
 
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="./">
-                <strong>
-                    Google Health Heart Rate Intraday Data
-                </strong>
-            </a>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="./">
+                    <strong>
+                        Google Health Heart Rate Intraday Data
+                    </strong>
+                </a>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<div
-    class="navbar-spacer"
-    aria-hidden="true"
-></div>
+    <div
+        class="navbar-spacer"
+        aria-hidden="true"></div>
 
-<div class="container">
+    <div class="container">
 
-    <div class="row">
+        <div class="row">
 
-        <div class="col-md-4">
+            <div class="col-md-4">
 
-            <div class="well">
+                <div class="well">
 
-                <?php if ($connected) { ?>
+                    <?php if ($connected) { ?>
 
-                    <h4>
-                        <span class="label label-success">
-                            Google Health Connected
-                        </span>
-                    </h4>
+                        <h4>
+                            <span class="label label-success">
+                                Google Health Connected
+                            </span>
+                        </h4>
 
-                    <p>
-                        This installation is connected to
-                        Google Health.
-                    </p>
+                        <p>
+                            This installation is connected to
+                            Google Health.
+                        </p>
 
-                    <dl>
-                        <dt>Google Health User ID</dt>
-                        <dd>
-                            <?php echo $safeHealthUserId; ?>
-                        </dd>
-                    </dl>
+                        <dl>
+                            <dt>Google Health User ID</dt>
+                            <dd>
+                                <?php echo $safeHealthUserId; ?>
+                            </dd>
+                        </dl>
 
-                    <p>
-                        <a
-                            class="btn btn-primary"
-                            href="data.php"
-                        >
-                            View Heart Rate Data
-                        </a>
-                    </p>
+                        <p>
+                            <a
+                                class="btn btn-primary"
+                                href="data.php">
+                                View Heart Rate Data
+                            </a>
+                        </p>
 
-                    <p>
-                        <a
-                            class="btn btn-default"
-                            href="oauth-start.php"
-                        >
-                            Reconnect Google Health
-                        </a>
-                    </p>
+                        <p>
+                            <a
+                                class="btn btn-default"
+                                href="oauth-start.php">
+                                Reconnect Google Health
+                            </a>
+                        </p>
 
-                <?php } else { ?>
+                    <?php } else { ?>
 
-                    <h4>
-                        <span class="label label-default">
-                            Google Health Not Connected
-                        </span>
-                    </h4>
+                        <h4>
+                            <span class="label label-default">
+                                Google Health Not Connected
+                            </span>
+                        </h4>
 
-                    <?php if ($safeConnectionError !== '') { ?>
+                        <?php if ($safeConnectionError !== '') { ?>
 
-                        <div
-                            class="alert alert-warning"
-                            role="alert"
-                        >
-                            <?php echo $safeConnectionError; ?>
-                        </div>
+                            <div
+                                class="alert alert-warning"
+                                role="alert">
+                                <?php echo $safeConnectionError; ?>
+                            </div>
+
+                        <?php } ?>
+
+                        <p>
+                            Connect this installation to your Google Health
+                            account to retrieve detailed heart-rate data.
+                        </p>
+
+                        <p>
+                            <a
+                                class="btn btn-primary"
+                                href="oauth-start.php">
+                                Connect Google Health
+                            </a>
+                        </p>
 
                     <?php } ?>
 
-                    <p>
-                        Connect this installation to your Google Health
-                        account to retrieve detailed heart-rate data.
-                    </p>
+                </div>
 
-                    <p>
-                        <a
-                            class="btn btn-primary"
-                            href="oauth-start.php"
-                        >
-                            Connect Google Health
-                        </a>
-                    </p>
+            </div>
 
-                <?php } ?>
+            <div class="col-md-8">
+
+                <h4>
+                    About Google Health Intraday Heart Rate Data
+                </h4>
+
+                <p>
+                    This application retrieves detailed heart-rate
+                    measurements from Google Health and provides tools
+                    to review and export the data.
+                </p>
+
+                <p>You can:</p>
+
+                <ul>
+                    <li>
+                        Retrieve detailed intraday heart-rate data
+                        from Google Health.
+                    </li>
+
+                    <li>
+                        View the data on an interactive chart.
+                    </li>
+
+                    <li>
+                        Review individual heart-rate measurements.
+                    </li>
+
+                    <li>
+                        Export stored heart-rate data.
+                    </li>
+                </ul>
+
+                <p>
+                    The project is open source and available at
+                    <a href="https://github.com/BJReplay/fitbit">
+                        https://github.com/BJReplay/fitbit
+                    </a>.
+                </p>
+
+                <hr>
+
+                <h4>Privacy Information</h4>
+
+                <p>
+                    Heart-rate information is sensitive health data.
+                    This application uses Google OAuth to request
+                    permission to access your Google Health data.
+                </p>
+
+                <ul>
+                    <li>
+                        Your Google password is not provided to this
+                        application.
+                    </li>
+
+                    <li>
+                        OAuth credentials are stored encrypted by this
+                        installation.
+                    </li>
+
+                    <li>
+                        Retrieved heart-rate data is stored in the
+                        configured database so historical data can
+                        be reviewed.
+                    </li>
+
+                    <li>
+                        Access can be removed through your Google
+                        account.
+                    </li>
+
+                    <li>
+                        You can run your own instance and retain
+                        control of its database and configuration.
+                    </li>
+                </ul>
 
             </div>
 
         </div>
 
-        <div class="col-md-8">
+        <hr>
 
-            <h4>
-                About Google Health Intraday Heart Rate Data
-            </h4>
-
-            <p>
-                This application retrieves detailed heart-rate
-                measurements from Google Health and provides tools
-                to review and export the data.
-            </p>
-
-            <p>You can:</p>
-
-            <ul>
-                <li>
-                    Retrieve detailed intraday heart-rate data
-                    from Google Health.
-                </li>
-
-                <li>
-                    View the data on an interactive chart.
-                </li>
-
-                <li>
-                    Review individual heart-rate measurements.
-                </li>
-
-                <li>
-                    Export stored heart-rate data.
-                </li>
-            </ul>
-
-            <p>
-                The project is open source and available at
-                <a href="https://github.com/BJReplay/fitbit">
-                    https://github.com/BJReplay/fitbit
-                </a>.
-            </p>
-
-            <hr>
-
-            <h4>Privacy Information</h4>
-
-            <p>
-                Heart-rate information is sensitive health data.
-                This application uses Google OAuth to request
-                permission to access your Google Health data.
-            </p>
-
-            <ul>
-                <li>
-                    Your Google password is not provided to this
-                    application.
-                </li>
-
-                <li>
-                    OAuth credentials are stored encrypted by this
-                    installation.
-                </li>
-
-                <li>
-                    Retrieved heart-rate data is stored in the
-                    configured database so historical data can
-                    be reviewed.
-                </li>
-
-                <li>
-                    Access can be removed through your Google
-                    account.
-                </li>
-
-                <li>
-                    You can run your own instance and retain
-                    control of its database and configuration.
-                </li>
-            </ul>
-
-        </div>
+        <p>
+            Originally based on an example by Vivek Kapoor.
+        </p>
 
     </div>
 
-    <hr>
-
-    <p>
-        Originally based on an example by Vivek Kapoor.
-    </p>
-
-</div>
-
 </body>
+
 </html>

@@ -21,10 +21,8 @@ function googleOAuthCallbackFailure(
 
     http_response_code(400);
 
-    exit(
-        'Google Health authorisation failed. ' .
-        'Please return to the home page and try again.'
-    );
+    exit('Google Health authorisation failed. ' .
+        'Please return to the home page and try again.');
 }
 
 /*
@@ -39,7 +37,7 @@ if (
 ) {
     googleOAuthCallbackFailure(
         'Google OAuth returned error: ' .
-        $error
+            $error
     );
 }
 
@@ -130,7 +128,7 @@ try {
 
         throw new RuntimeException(
             'Google OAuth token exchange failed: ' .
-            (string) $description
+                (string) $description
         );
     }
 
@@ -192,12 +190,10 @@ try {
 } catch (Throwable $exception) {
     error_log(
         'Google OAuth callback failed: ' .
-        $exception->getMessage()
+            $exception->getMessage()
     );
 
     http_response_code(500);
 
-    exit(
-        'Unable to complete Google Health authorisation.'
-    );
+    exit('Unable to complete Google Health authorisation.');
 }

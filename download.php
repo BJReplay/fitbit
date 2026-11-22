@@ -13,10 +13,8 @@ if (
     !is_string($date) ||
     !validateDate($date . ' 00:00:00')
 ) {
-    exit(
-        'Date is not valid. ' .
-        'Please use YYYY-MM-DD format.'
-    );
+    exit('Date is not valid. ' .
+        'Please use YYYY-MM-DD format.');
 }
 
 try {
@@ -33,15 +31,13 @@ try {
 ) {
     error_log(
         'Unable to resolve Google Health identity for export: ' .
-        $exception->getMessage()
+            $exception->getMessage()
     );
 
     http_response_code(401);
 
-    exit(
-        'Google Health is not connected. ' .
-        '<a href="oauth-start.php">Connect Google Health</a>'
-    );
+    exit('Google Health is not connected. ' .
+        '<a href="oauth-start.php">Connect Google Health</a>');
 }
 
 $safeUserId = preg_replace(
@@ -67,8 +63,8 @@ $filename =
 
 header(
     'Content-Disposition: attachment; filename="' .
-    $filename .
-    '"'
+        $filename .
+        '"'
 );
 
 header(
@@ -195,7 +191,7 @@ try {
             );
 
             echo
-                '<tr><td>' .
+            '<tr><td>' .
                 $safeDate .
                 ' ' .
                 $time .

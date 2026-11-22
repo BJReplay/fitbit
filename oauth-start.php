@@ -26,7 +26,7 @@ try {
      * configures access_type=offline.
      */
     $client->setPrompt('consent');
-    
+
     $codeVerifier = $client
         ->getOAuth2Service()
         ->generateCodeVerifier();
@@ -57,12 +57,10 @@ try {
 
     error_log(
         'Unable to begin Google OAuth: ' .
-        $exception->getMessage()
+            $exception->getMessage()
     );
 
     http_response_code(500);
 
-    exit(
-        'Unable to begin Google Health authorisation.'
-    );
+    exit('Unable to begin Google Health authorisation.');
 }

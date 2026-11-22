@@ -11,58 +11,54 @@ require_once __DIR__ . '/google-health.php';
 $date = $_GET['date'] ?? date('Y-m-d');
 
 if (isset($_GET['next'])) {
-    $date = $_GET['next'];
+	$date = $_GET['next'];
 }
 
 if (
-    !is_string($date) ||
-    !validateDate($date . ' 00:00:00')
+	!is_string($date) ||
+	!validateDate($date . ' 00:00:00')
 ) {
-    exit(
-        'Date is not valid. ' .
-        'Please use YYYY-MM-DD format.'
-    );
+	exit('Date is not valid. ' .
+		'Please use YYYY-MM-DD format.');
 }
 
 $currDate = new DateTimeImmutable(
-    $date
+	$date
 );
 
 $next = $currDate
-    ->add(
-        new DateInterval('P1D')
-    )
-    ->format('Y-m-d');
+	->add(
+		new DateInterval('P1D')
+	)
+	->format('Y-m-d');
 
 $prev = $currDate
-    ->sub(
-        new DateInterval('P1D')
-    )
-    ->format('Y-m-d');
+	->sub(
+		new DateInterval('P1D')
+	)
+	->format('Y-m-d');
 
 try {
-    $healthUserId = googleHealthCurrentUserId(
-        $config_conn,
-        $config_redirect_uri
-    );
+	$healthUserId = googleHealthCurrentUserId(
+		$config_conn,
+		$config_redirect_uri
+	);
 } catch (
-    JsonException |
-    InvalidArgumentException |
-    RuntimeException |
-    UnexpectedValueException |
-    mysqli_sql_exception $exception
+	JsonException |
+	InvalidArgumentException |
+	RuntimeException |
+	UnexpectedValueException |
+	mysqli_sql_exception $exception
 ) {
-    error_log(
-        'Unable to resolve Google Health identity: ' .
-        $exception->getMessage()
-    );
+	error_log(
+		'Unable to resolve Google Health identity: ' .
+			$exception->getMessage()
+	);
 
-    http_response_code(401);
+	http_response_code(401);
 
-    exit(
-        'Google Health is not connected. ' .
-        '<a href="oauth-start.php">Connect Google Health</a>'
-    );
+	exit('Google Health is not connected. ' .
+		'<a href="oauth-start.php">Connect Google Health</a>');
 }
 
 // GET DATA & SHOW THE CHART
@@ -75,7 +71,7 @@ try {
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-	<title>Fitbit Heart Rate Data for <?php	echo htmlspecialchars($healthUserId,ENT_QUOTES | ENT_SUBSTITUTE,'UTF-8'	);?></title>
+	<title>Fitbit Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></title>
 
 	<link rel="stylesheet" href="/assets/css/bootstrap-3.3.7.min.css">
 	<link rel="stylesheet" href="/assets/css/bootstrap-datepicker-1.10.1.min.css">
@@ -167,9 +163,9 @@ try {
 			mysqli_stmt_bind_result($statement, $json);
 
 			if (mysqli_stmt_fetch($statement)) {
-				 if ($json === '') {
-        			throw new UnexpectedValueException('Stored Fitbit JSON is empty.');
-    			}
+				if ($json === '') {
+					throw new UnexpectedValueException('Stored Fitbit JSON is empty.');
+				}
 				$series = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 				if (!is_array($series)) {
 					throw new UnexpectedValueException('Stored Fitbit JSON is not an object.');
@@ -219,7 +215,7 @@ try {
 			Highcharts.chart('charts', {
 
 				title: {
-					text: 'Fitbit Heart Rate Data for <?php	echo htmlspecialchars($healthUserId,ENT_QUOTES | ENT_SUBSTITUTE,'UTF-8'	);?>'
+					text: 'Fitbit Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>'
 				},
 
 				chart: {
