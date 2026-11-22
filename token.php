@@ -166,6 +166,14 @@ try {
     );
 
     /*
+    * The newly authorised token may represent a different Google account.
+    * Force the application to resolve its Google Health identity again.
+    */
+    unset(
+        $_SESSION['google_health_user_id']
+    );
+
+    /*
      * Rotate the session after successfully completing authorisation.
      */
     session_regenerate_id(true);

@@ -5,12 +5,7 @@ declare(strict_types=1);
 include_once 'config.php';
 require_once __DIR__ . '/google-health.php';
 
-/*
- * Validate the requested date.
- */
-$date =
-    $_GET['date'] ??
-    null;
+$date = $_GET['date'] ?? null;
 
 if (
     !is_string($date) ||
@@ -22,14 +17,9 @@ if (
     );
 }
 
-/*
- * Preserve the existing fetch-and-next behaviour.
- */
 $next = $date;
 
-$requestedNext =
-    $_GET['next'] ??
-    null;
+$requestedNext = $_GET['next'] ?? null;
 
 if (
     is_string($requestedNext) &&
@@ -45,15 +35,13 @@ try {
         $date
     );
 
-    $user =
-        $result['user'];
+    $healthUserId = $result['user'];
 
-    $document =
-        $result['document'];
+    $document = $result['document'];
 
     if (
-        !is_string($user) ||
-        $user === ''
+        !is_string($healthUserId) ||
+        $healthUserId === ''
     ) {
         throw new UnexpectedValueException(
             'Google Health returned no usable user identifier.'
@@ -72,12 +60,8 @@ try {
         JSON_UNESCAPED_SLASHES
     );
 
-    /*
-     * Keep the established session key temporarily so data.php and
-     * download.php continue working without a simultaneous rewrite.
-     */
-    $_SESSION['fb_client_id'] =
-        $user;
+    $_SESSION['google_health_user_id'] =
+        $healthUserId;
 
     mysqli_begin_transaction(
         $config_conn
@@ -93,7 +77,7 @@ try {
     mysqli_stmt_bind_param(
         $delete,
         'ss',
-        $user,
+        $healthUserId,
         $date
     );
 
@@ -116,7 +100,7 @@ try {
     mysqli_stmt_bind_param(
         $insert,
         'sss',
-        $user,
+        $healthUserId,
         $date,
         $json
     );
@@ -144,7 +128,7 @@ try {
             $config_conn
         );
     } catch (mysqli_sql_exception) {
-        // No active transaction, or the connection is unavailable.
+        // There may be no active transaction.
     }
 
     error_log(
@@ -170,7 +154,10 @@ header(
     'Location: data.php?date=' .
     rawurlencode($next) .
     '&rand=' .
-    random_int(0, PHP_INT_MAX)
+    random_int(
+        0,
+        PHP_INT_MAX
+    )
 );
 
 exit;

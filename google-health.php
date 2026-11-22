@@ -213,6 +213,49 @@ function googleHealthIdentity(
 }
 
 /**
+ * Returns the healthUserId for the currently authorised Google Health
+ * account.
+ *
+ * The value is cached in the PHP session after it has been verified
+ * through the Google Health identity endpoint.
+ */
+function googleHealthCurrentUserId(
+    mysqli $connection,
+    string $redirectUri
+): string {
+    $sessionUserId =
+        $_SESSION['google_health_user_id'] ??
+        null;
+
+    if (
+        is_string($sessionUserId) &&
+        preg_match(
+            '/^[A-Za-z0-9-]{1,63}$/',
+            $sessionUserId
+        ) === 1
+    ) {
+        return $sessionUserId;
+    }
+
+    $client = authorisedGoogleOAuthClient(
+        $connection,
+        $redirectUri
+    );
+
+    $identity = googleHealthIdentity(
+        $client
+    );
+
+    $healthUserId =
+        $identity['healthUserId'];
+
+    $_SESSION['google_health_user_id'] =
+        $healthUserId;
+
+    return $healthUserId;
+}
+
+/**
  * Builds the Google Health civil-time filter for one calendar day.
  */
 function googleHealthHeartRateDateFilter(
@@ -590,7 +633,7 @@ function googleHealthLegacyHeartRateDocument(
 
 /**
  * Fetches one day of Google Health heart-rate data and returns both the
- * local storage key and the Fitbit-compatible document.
+ * canonical Google Health user ID and the Fitbit-compatible document.
  *
  * @return array{
  *     user: string,
@@ -616,6 +659,12 @@ function googleHealthHeartRateDocument(
         $client
     );
 
+    $healthUserId =
+        $identity['healthUserId'];
+
+    $_SESSION['google_health_user_id'] =
+        $healthUserId;
+
     $dataset =
         googleHealthHeartRateDataset(
             $client,
@@ -624,7 +673,7 @@ function googleHealthHeartRateDocument(
 
     return [
         'user' =>
-            $identity['legacyUserId'],
+            $healthUserId,
 
         'identity' =>
             $identity,
