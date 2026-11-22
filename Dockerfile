@@ -30,8 +30,8 @@ COPY --from=composer/composer:2.11.2-bin@sha256:dc89a3717e5424a7b732a4d3aa034e53
 # This lets Docker reuse the Composer layer when application PHP files change
 # but composer.json/composer.lock do not.
 #
-COPY fitbit/composer.json ./
-COPY fitbit/composer.lock ./
+COPY composer.json ./
+COPY composer.lock ./
 
 RUN --mount=type=cache,target=/tmp/composer-cache \
     COMPOSER_CACHE_DIR=/tmp/composer-cache \
@@ -45,7 +45,7 @@ RUN --mount=type=cache,target=/tmp/composer-cache \
 #
 # Now copy the application itself into /var/www/html.
 #
-COPY fitbit/ ./
+COPY / ./
 
 #
 # Rebuild the authoritative autoloader after application files are present.
