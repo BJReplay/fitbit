@@ -4,5 +4,4 @@ vendor
 .env
 composer.phar
 sql
-infra
 renovate.json
