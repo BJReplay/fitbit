@@ -143,6 +143,107 @@ function googleHealthGet(
 }
 
 /**
+ * Sends an authenticated JSON POST request to Google Health.
+ *
+ * @param array<string, mixed> $requestBody
+ * @return array<string, mixed>
+ */
+function googleHealthPost(
+    Client $client,
+    string $url,
+    array $requestBody
+): array {
+    $accessToken = googleHealthAccessToken(
+        $client
+    );
+
+    $httpClient = $client->getHttpClient();
+
+    $response = $httpClient->request(
+        'POST',
+        $url,
+        [
+            'headers' => [
+                'Authorization' =>
+                    'Bearer ' . $accessToken,
+
+                'Accept' =>
+                    'application/json',
+
+                'Content-Type' =>
+                    'application/json',
+            ],
+
+            'json' =>
+                $requestBody,
+
+            'http_errors' =>
+                false,
+        ]
+    );
+
+    $statusCode = $response->getStatusCode();
+
+    $body = (string) $response->getBody();
+
+    try {
+        $decoded = json_decode(
+            $body,
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
+    } catch (JsonException $exception) {
+        throw new RuntimeException(
+            sprintf(
+                'Google Health returned invalid JSON with HTTP status %d.',
+                $statusCode
+            ),
+            0,
+            $exception
+        );
+    }
+
+    if (!is_array($decoded)) {
+        throw new UnexpectedValueException(
+            'Google Health returned JSON that is not an object.'
+        );
+    }
+
+    if (
+        $statusCode < 200 ||
+        $statusCode >= 300
+    ) {
+        $error = $decoded['error'] ?? [];
+
+        $message =
+            is_array($error) &&
+            isset($error['message']) &&
+            is_string($error['message'])
+                ? $error['message']
+                : 'No error message returned.';
+
+        $status =
+            is_array($error) &&
+            isset($error['status']) &&
+            is_string($error['status'])
+                ? $error['status']
+                : 'UNKNOWN';
+
+        throw new RuntimeException(
+            sprintf(
+                'Google Health request failed with HTTP %d, %s: %s',
+                $statusCode,
+                $status,
+                $message
+            )
+        );
+    }
+
+    return $decoded;
+}
+
+/**
  * Gets the identity associated with the authorised Google Health account.
  *
  * The legacy Fitbit ID is used as the local storage key when available,

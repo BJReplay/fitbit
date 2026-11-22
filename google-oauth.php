@@ -10,6 +10,10 @@ const GOOGLE_HEALTH_READ_SCOPE =
     'https://www.googleapis.com/auth/' .
     'googlehealth.health_metrics_and_measurements.readonly';
 
+const GOOGLE_HEALTH_ACTIVITY_READ_SCOPE =
+    'https://www.googleapis.com/auth/' .
+    'googlehealth.activity_and_fitness.readonly';
+
 /**
  * Returns a required environment variable.
  */
@@ -65,6 +69,7 @@ function createGoogleOAuthClient(string $redirectUri): Client
 
     $client->setScopes([
         GOOGLE_HEALTH_READ_SCOPE,
+        GOOGLE_HEALTH_ACTIVITY_READ_SCOPE,
     ]);
 
     /*
