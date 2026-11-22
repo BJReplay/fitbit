@@ -5,5 +5,8 @@
     "require": {
         "php": "^8.6",
         "google/apiclient": "^2.20"
+    },
+    "config": {
+        "process-timeout": 900
     }
 }
