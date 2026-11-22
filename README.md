@@ -22,7 +22,7 @@ You can use <https://exain.com/fitbit> service to see a demo.
 
 ## How to Install
 
-* You require PHP with MySQL Support and a publicly accessible server. **https** access is preferred.
+* You require PHP with MySQL Support and a publicly accessible server. **https** access is required.
 * Download/Clone the code on your machine
 * Create the database. The schema is available at `sql/default.sql`
 * Provide the following values in `config.php`

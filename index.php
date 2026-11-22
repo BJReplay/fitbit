@@ -144,6 +144,12 @@ if (isset($_SESSION['fb_client_id'])) {
 					<li> Authenticate only through your Fitbit credentials.
 					<li> Save the heartrate data along with your Client ID on this website, also to enable historical data review.
 					<li> Have an option to setup your own service on your server without sharing data with anyone.
+					<li> If you authenticate through your Fitbit credentials, your heartrate data will not be shared with anyone else.
+					<li> You may remove your Client ID at any time from the Fitbit Website.
+					<li> Only you have access to your heartrate data.
+					<li> You may remove access at any time from your Fitbit account.
+					<li> Any reference to Fitbit in this website is only for informational purposes and not an endorsement of any kind.
+					<li> Any reference to Fitbit in this website may also be taken to refer to Google Health where Fitbit is now a part of Google Health.	
 				</ul>
 				</P>
 			</div> <!-- /col-md-9 about -->
