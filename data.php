@@ -317,7 +317,7 @@ try {
 						$name = htmlspecialchars((string) ($zone['name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 						$minutes = htmlspecialchars((string) ($zone['minutes'] ?? 'N/A'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 						$range = htmlspecialchars((string) ($zone['min'] ?? '') . '-' . (string) ($zone['max'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						echo "<tr class='$class'><td>$name</td><td>$minutes</td><td>$calories</td><td>$range</td></tr>\n";
+						echo "<tr class='$class'><td>$name</td><td>$minutes</td><td>$range</td></tr>\n";
 					}
 					?>
 				</table>
