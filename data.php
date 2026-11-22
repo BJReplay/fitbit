@@ -304,7 +304,6 @@ try {
 					<thead>
 						<th>Name</th>
 						<th>Minutes Spent</th>
-						<th>Calories</th>
 						<th>HB Range</th>
 					</thead>
 
@@ -317,7 +316,6 @@ try {
 						$class = $colors[$i % count($colors)];
 						$name = htmlspecialchars((string) ($zone['name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 						$minutes = htmlspecialchars((string) ($zone['minutes'] ?? 'N/A'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						$calories = htmlspecialchars((string) ($zone['caloriesOut'] ?? 'N/A'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 						$range = htmlspecialchars((string) ($zone['min'] ?? '') . '-' . (string) ($zone['max'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 						echo "<tr class='$class'><td>$name</td><td>$minutes</td><td>$calories</td><td>$range</td></tr>\n";
 					}

@@ -815,7 +815,8 @@ function googleHealthHeartRateZoneName(
  */
 function googleHealthDailyHeartRateZones(
     Client $client,
-    string $date
+    string $date,
+    array $zoneMinutes
 ): array {
     $response = googleHealthGet(
         $client,
@@ -889,6 +890,9 @@ function googleHealthDailyHeartRateZones(
                         $zoneType
                     ),
 
+                'minutes' =>
+                    $zoneMinutes[$zoneType] ?? 0,
+
                 'min' =>
                     (int) $min,
 
@@ -901,6 +905,191 @@ function googleHealthDailyHeartRateZones(
     }
 
     return [];
+}
+
+/**
+ * Converts a Google protobuf duration string to whole minutes.
+ *
+ * Examples:
+ *  "49320s" -> 822
+ *  "3.5s"   -> 0
+ */
+function googleHealthDurationMinutes(
+    string $duration
+): int {
+    if (
+        preg_match(
+            '/^([0-9]+(?:\.[0-9]+)?)s$/',
+            $duration,
+            $matches
+        ) !== 1
+    ) {
+        throw new UnexpectedValueException(
+            'Google Health returned an invalid duration.'
+        );
+    }
+
+    $seconds = (float) $matches[1];
+
+    return (int) floor(
+        $seconds / 60
+    );
+}
+
+/**
+ * Retrieves the total minutes spent in each heart-rate zone for one
+ * civil calendar day.
+ *
+ * @return array<string, int>
+ */
+function googleHealthDailyZoneMinutes(
+    Client $client,
+    string $date
+): array {
+    if (!validateDate($date . ' 00:00:00')) {
+        throw new InvalidArgumentException(
+            'The Google Health daily date is invalid.'
+        );
+    }
+
+    $startDate = new DateTimeImmutable(
+        $date
+    );
+
+    $endDate = $startDate->add(
+        new DateInterval('P1D')
+    );
+
+    $response = googleHealthPost(
+        $client,
+        GOOGLE_HEALTH_API_BASE .
+        '/users/me/dataTypes/' .
+        'time-in-heart-rate-zone/' .
+        'dataPoints:dailyRollUp',
+        [
+            'range' => [
+                'start' => [
+                    'date' => [
+                        'year' =>
+                            (int) $startDate->format('Y'),
+
+                        'month' =>
+                            (int) $startDate->format('m'),
+
+                        'day' =>
+                            (int) $startDate->format('d'),
+                    ],
+
+                    'time' => [
+                        'hours' => 0,
+                        'minutes' => 0,
+                        'seconds' => 0,
+                    ],
+                ],
+
+                'end' => [
+                    'date' => [
+                        'year' =>
+                            (int) $endDate->format('Y'),
+
+                        'month' =>
+                            (int) $endDate->format('m'),
+
+                        'day' =>
+                            (int) $endDate->format('d'),
+                    ],
+
+                    'time' => [
+                        'hours' => 0,
+                        'minutes' => 0,
+                        'seconds' => 0,
+                    ],
+                ],
+            ],
+
+            'windowSizeDays' => 1,
+
+            'pageSize' => 10,
+
+            'dataSourceFamily' =>
+                'users/me/dataSourceFamilies/all-sources',
+        ]
+    );
+
+    /*
+     * Initialise every known zone to zero. Google may omit a zone when
+     * no time was recorded in it.
+     */
+    $minutes = [
+        'LIGHT' => 0,
+        'MODERATE' => 0,
+        'VIGOROUS' => 0,
+        'PEAK' => 0,
+    ];
+
+    $rollupDataPoints =
+        $response['rollupDataPoints'] ??
+        [];
+
+    if (!is_array($rollupDataPoints)) {
+        throw new UnexpectedValueException(
+            'Google Health returned invalid zone-duration data.'
+        );
+    }
+
+    foreach ($rollupDataPoints as $rollupDataPoint) {
+        if (!is_array($rollupDataPoint)) {
+            continue;
+        }
+
+        $rollup =
+            $rollupDataPoint['timeInHeartRateZone'] ??
+            null;
+
+        if (!is_array($rollup)) {
+            continue;
+        }
+
+        $zones =
+            $rollup['timeInHeartRateZones'] ??
+            [];
+
+        if (!is_array($zones)) {
+            continue;
+        }
+
+        foreach ($zones as $zone) {
+            if (!is_array($zone)) {
+                continue;
+            }
+
+            $zoneType =
+                $zone['heartRateZone'] ??
+                null;
+
+            $duration =
+                $zone['duration'] ??
+                null;
+
+            if (
+                !is_string($zoneType) ||
+                !is_string($duration) ||
+                !array_key_exists(
+                    $zoneType,
+                    $minutes
+                )
+            ) {
+                continue;
+            }
+
+            $minutes[$zoneType] =
+                googleHealthDurationMinutes(
+                    $duration
+                );
+        }
+    }
+
+    return $minutes;
 }
 
 /**
@@ -986,10 +1175,17 @@ function googleHealthHeartRateDocument(
             $date
         );
 
+    $zoneMinutes =
+        googleHealthDailyZoneMinutes(
+            $client,
+            $date
+        );
+
     $heartRateZones =
         googleHealthDailyHeartRateZones(
             $client,
-            $date
+            $date,
+            $zoneMinutes
         );
 
     return [
