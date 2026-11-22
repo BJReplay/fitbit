@@ -590,31 +590,250 @@ function googleHealthHeartRateDataset(
 }
 
 /**
- * Wraps an already compact heart-rate dataset in the legacy Fitbit JSON
- * structure consumed by data.php and download.php.
+ * Builds a filter for a single daily Google Health record.
+ */
+function googleHealthDailyDateFilter(
+    string $filterName,
+    string $date
+): string {
+    if (!validateDate($date . ' 00:00:00')) {
+        throw new InvalidArgumentException(
+            'The Google Health daily date is invalid.'
+        );
+    }
+
+    $nextDate = (new DateTimeImmutable($date))
+        ->add(new DateInterval('P1D'))
+        ->format('Y-m-d');
+
+    return sprintf(
+        '%s.date >= "%s" AND %s.date < "%s"',
+        $filterName,
+        $date,
+        $filterName,
+        $nextDate
+    );
+}
+
+/**
+ * Retrieves the daily resting heart rate.
+ */
+function googleHealthDailyRestingHeartRate(
+    Client $client,
+    string $date
+): ?int {
+    $response = googleHealthGet(
+        $client,
+        GOOGLE_HEALTH_API_BASE .
+        '/users/me/dataTypes/' .
+        'daily-resting-heart-rate/dataPoints',
+        [
+            'pageSize' => 10,
+            'filter' => googleHealthDailyDateFilter(
+                'daily_resting_heart_rate',
+                $date
+            ),
+        ]
+    );
+
+    $dataPoints = $response['dataPoints'] ?? [];
+
+    if (!is_array($dataPoints)) {
+        throw new UnexpectedValueException(
+            'Google Health returned invalid resting heart-rate data.'
+        );
+    }
+
+    foreach ($dataPoints as $dataPoint) {
+        if (!is_array($dataPoint)) {
+            continue;
+        }
+
+        $daily = $dataPoint['dailyRestingHeartRate'] ?? null;
+
+        if (!is_array($daily)) {
+            continue;
+        }
+
+        $beatsPerMinute = $daily['beatsPerMinute'] ?? null;
+
+        if (!is_numeric($beatsPerMinute)) {
+            continue;
+        }
+
+        $beatsPerMinute = (int) $beatsPerMinute;
+
+        if (
+            $beatsPerMinute < 1 ||
+            $beatsPerMinute > 300
+        ) {
+            continue;
+        }
+
+        return $beatsPerMinute;
+    }
+
+    return null;
+}
+
+/**
+ * Converts a Google Health zone type into a display name.
+ */
+function googleHealthHeartRateZoneName(
+    string $zoneType
+): string {
+    return match ($zoneType) {
+        'LIGHT' =>
+            'Light',
+
+        'MODERATE' =>
+            'Moderate',
+
+        'VIGOROUS' =>
+            'Vigorous',
+
+        'PEAK' =>
+            'Peak',
+
+        default =>
+            'Unknown',
+    };
+}
+
+/**
+ * Retrieves the daily Google Health heart-rate zone thresholds.
+ *
+ * Google Health provides zone type and min/max BPM here. It does not
+ * provide the legacy Fitbit minutes or calories values in this record.
+ *
+ * @return list<array{
+ *     name: string,
+ *     min: int,
+ *     max: int
+ * }>
+ */
+function googleHealthDailyHeartRateZones(
+    Client $client,
+    string $date
+): array {
+    $response = googleHealthGet(
+        $client,
+        GOOGLE_HEALTH_API_BASE .
+        '/users/me/dataTypes/' .
+        'daily-heart-rate-zones/dataPoints',
+        [
+            'pageSize' => 10,
+            'filter' => googleHealthDailyDateFilter(
+                'daily_heart_rate_zones',
+                $date
+            ),
+        ]
+    );
+
+    $dataPoints = $response['dataPoints'] ?? [];
+
+    if (!is_array($dataPoints)) {
+        throw new UnexpectedValueException(
+            'Google Health returned invalid heart-rate zone data.'
+        );
+    }
+
+    foreach ($dataPoints as $dataPoint) {
+        if (!is_array($dataPoint)) {
+            continue;
+        }
+
+        $daily = $dataPoint['dailyHeartRateZones'] ?? null;
+
+        if (!is_array($daily)) {
+            continue;
+        }
+
+        $googleZones = $daily['heartRateZones'] ?? [];
+
+        if (!is_array($googleZones)) {
+            continue;
+        }
+
+        $zones = [];
+
+        foreach ($googleZones as $googleZone) {
+            if (!is_array($googleZone)) {
+                continue;
+            }
+
+            $zoneType =
+                $googleZone['heartRateZoneType'] ??
+                null;
+
+            $min =
+                $googleZone['minBeatsPerMinute'] ??
+                null;
+
+            $max =
+                $googleZone['maxBeatsPerMinute'] ??
+                null;
+
+            if (
+                !is_string($zoneType) ||
+                !is_numeric($min) ||
+                !is_numeric($max)
+            ) {
+                continue;
+            }
+
+            $zones[] = [
+                'name' =>
+                    googleHealthHeartRateZoneName(
+                        $zoneType
+                    ),
+
+                'min' =>
+                    (int) $min,
+
+                'max' =>
+                    (int) $max,
+            ];
+        }
+
+        return $zones;
+    }
+
+    return [];
+}
+
+/**
+ * Wraps Google Health heart-rate data in the legacy JSON structure
+ * consumed by data.php and download.php.
  *
  * @param list<array{time: string, value: int}> $dataset
+ * @param list<array{name: string, min: int, max: int}> $heartRateZones
  * @return array<string, mixed>
  */
 function googleHealthLegacyHeartRateDocument(
     string $date,
-    array $dataset
+    array $dataset,
+    ?int $restingHeartRate,
+    array $heartRateZones
 ): array {
+    $summary = [
+        'heartRateZones' =>
+            $heartRateZones,
+    ];
+
+    if ($restingHeartRate !== null) {
+        $summary['restingHeartRate'] =
+            $restingHeartRate;
+    }
+
     return [
         'activities-heart' => [
             [
                 'dateTime' =>
                     $date,
 
-                'value' => [
-                    /*
-                     * Daily resting heart rate and zone summaries are not
-                     * included in raw Google Health heart-rate samples.
-                     * They can be added later from their daily data types.
-                     */
-                    'heartRateZones' =>
-                        [],
-                ],
+                'value' =>
+                    $summary,
             ],
         ],
 
@@ -631,19 +850,9 @@ function googleHealthLegacyHeartRateDocument(
     ];
 }
 
+
 /**
- * Fetches one day of Google Health heart-rate data and returns both the
- * canonical Google Health user ID and the Fitbit-compatible document.
- *
- * @return array{
- *     user: string,
- *     identity: array{
- *         name: string,
- *         legacyUserId: string,
- *         healthUserId: string
- *     },
- *     document: array<string, mixed>
- * }
+ * Fetches one day of Google Health heart-rate data.
  */
 function googleHealthHeartRateDocument(
     mysqli $connection,
@@ -665,8 +874,19 @@ function googleHealthHeartRateDocument(
     $_SESSION['google_health_user_id'] =
         $healthUserId;
 
-    $dataset =
-        googleHealthHeartRateDataset(
+    $dataset = googleHealthHeartRateDataset(
+        $client,
+        $date
+    );
+
+    $restingHeartRate =
+        googleHealthDailyRestingHeartRate(
+            $client,
+            $date
+        );
+
+    $heartRateZones =
+        googleHealthDailyHeartRateZones(
             $client,
             $date
         );
@@ -681,7 +901,9 @@ function googleHealthHeartRateDocument(
         'document' =>
             googleHealthLegacyHeartRateDocument(
                 $date,
-                $dataset
+                $dataset,
+                $restingHeartRate,
+                $heartRateZones
             ),
     ];
 }
