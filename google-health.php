@@ -48,22 +48,34 @@ function googleHealthGet(
     string $url,
     array $query = []
 ): array {
-    $response = $client->getHttpClient()->request(
-        'GET',
-        $url,
-        [
-            'headers' => [
-                'Authorization' =>
-                    'Bearer ' .
-                    googleHealthAccessToken($client),
+    $response = $client
+        ->getHttpClient()
+        ->request(
+            'GET',
+            $url,
+            [
+                'headers' => [
+                    'Authorization' =>
+                        'Bearer ' .
+                        googleHealthAccessToken(
+                            $client
+                        ),
 
-                'Accept' =>
-                    'application/json',
-            ],
-            'query' => $query,
-            'http_errors' => false,
-        ]
-    );
+                    'Accept' =>
+                        'application/json',
+                ],
+
+                'query' =>
+                    $query,
+
+                /*
+                 * Preserve non-success responses so that the Google error
+                 * body can be inspected and included in our exception.
+                 */
+                'http_errors' =>
+                    false,
+            ]
+        );
 
     $statusCode =
         $response->getStatusCode();
@@ -99,7 +111,9 @@ function googleHealthGet(
         $statusCode < 200 ||
         $statusCode >= 300
     ) {
-        $error = $decoded['error'] ?? [];
+        $error =
+            $decoded['error'] ??
+            [];
 
         $message =
             is_array($error) &&
@@ -131,7 +145,15 @@ function googleHealthGet(
 /**
  * Gets the identity associated with the authorised Google Health account.
  *
- * @return array{name: string, legacyUserId: string, healthUserId: string}
+ * The legacy Fitbit ID is used as the local storage key when available,
+ * allowing existing data_raw records to remain associated with the same
+ * user identifier.
+ *
+ * @return array{
+ *     name: string,
+ *     legacyUserId: string,
+ *     healthUserId: string
+ * }
  */
 function googleHealthIdentity(
     Client $client
@@ -166,21 +188,27 @@ function googleHealthIdentity(
     }
 
     /*
-     * The legacy Fitbit ID may not exist for accounts that were not migrated
-     * from Fitbit. Use the Google Health user ID as the local storage key in
-     * that case.
+     * Accounts not migrated from legacy Fitbit might not have a legacy
+     * Fitbit user ID. Use the Google Health user ID as the local key in
+     * that situation.
      */
     if (
         !is_string($legacyUserId) ||
         $legacyUserId === ''
     ) {
-        $legacyUserId = $healthUserId;
+        $legacyUserId =
+            $healthUserId;
     }
 
     return [
-        'name' => $name,
-        'legacyUserId' => $legacyUserId,
-        'healthUserId' => $healthUserId,
+        'name' =>
+            $name,
+
+        'legacyUserId' =>
+            $legacyUserId,
+
+        'healthUserId' =>
+            $healthUserId,
     ];
 }
 
@@ -213,103 +241,11 @@ function googleHealthHeartRateDateFilter(
 }
 
 /**
- * Retrieves every page of Google Health heart-rate samples for one civil
- * calendar day.
- *
- * @return list<array<string, mixed>>
- */
-function googleHealthHeartRateDataPoints(
-    Client $client,
-    string $date
-): array {
-    $url =
-        GOOGLE_HEALTH_API_BASE .
-        '/users/me/dataTypes/heart-rate/dataPoints';
-
-    $filter =
-        googleHealthHeartRateDateFilter(
-            $date
-        );
-
-    $dataPoints = [];
-    $pageToken = null;
-    $seenPageTokens = [];
-
-    do {
-        $query = [
-            'pageSize' =>
-                GOOGLE_HEALTH_HEART_RATE_PAGE_SIZE,
-
-            'filter' =>
-                $filter,
-        ];
-
-        if (
-            is_string($pageToken) &&
-            $pageToken !== ''
-        ) {
-            $query['pageToken'] =
-                $pageToken;
-        }
-
-        $page = googleHealthGet(
-            $client,
-            $url,
-            $query
-        );
-
-        $pageDataPoints =
-            $page['dataPoints'] ??
-            [];
-
-        if (!is_array($pageDataPoints)) {
-            throw new UnexpectedValueException(
-                'Google Health returned an invalid dataPoints value.'
-            );
-        }
-
-        foreach ($pageDataPoints as $dataPoint) {
-            if (is_array($dataPoint)) {
-                $dataPoints[] = $dataPoint;
-            }
-        }
-
-        $nextPageToken =
-            $page['nextPageToken'] ??
-            null;
-
-        if (
-            $nextPageToken === null ||
-            $nextPageToken === ''
-        ) {
-            $pageToken = null;
-            continue;
-        }
-
-        if (!is_string($nextPageToken)) {
-            throw new UnexpectedValueException(
-                'Google Health returned an invalid nextPageToken.'
-            );
-        }
-
-        if (isset($seenPageTokens[$nextPageToken])) {
-            throw new RuntimeException(
-                'Google Health repeated a pagination token.'
-            );
-        }
-
-        $seenPageTokens[$nextPageToken] = true;
-        $pageToken = $nextPageToken;
-    } while ($pageToken !== null);
-
-    return $dataPoints;
-}
-
-/**
- * Extracts a local civil timestamp and numeric heart rate from one Google
+ * Extracts a civil timestamp and numeric heart rate from one Google
  * Health data point.
  *
- * The returned timestamp is formatted as YYYY-MM-DD HH:MM:SS.
+ * Google returns beatsPerMinute as a string, so it is explicitly
+ * converted to an integer.
  *
  * @param array<string, mixed> $dataPoint
  * @return array{timestamp: string, time: string, value: int}|null
@@ -336,6 +272,9 @@ function googleHealthHeartRateSample(
     $beatsPerMinute =
         (int) $beatsPerMinute;
 
+    /*
+     * Ignore impossible or obviously malformed heart-rate readings.
+     */
     if (
         $beatsPerMinute <= 0 ||
         $beatsPerMinute > 300
@@ -414,7 +353,11 @@ function googleHealthHeartRateSample(
     }
 
     if (
-        !checkdate($month, $day, $year) ||
+        !checkdate(
+            $month,
+            $day,
+            $year
+        ) ||
         $hours < 0 ||
         $hours > 23 ||
         $minutes < 0 ||
@@ -425,14 +368,14 @@ function googleHealthHeartRateSample(
         return null;
     }
 
-    $date = sprintf(
+    $civilDateString = sprintf(
         '%04d-%02d-%02d',
         $year,
         $month,
         $day
     );
 
-    $time = sprintf(
+    $civilTimeString = sprintf(
         '%02d:%02d:%02d',
         $hours,
         $minutes,
@@ -441,10 +384,12 @@ function googleHealthHeartRateSample(
 
     return [
         'timestamp' =>
-            $date . ' ' . $time,
+            $civilDateString .
+            ' ' .
+            $civilTimeString,
 
         'time' =>
-            $time,
+            $civilTimeString,
 
         'value' =>
             $beatsPerMinute,
@@ -452,82 +397,180 @@ function googleHealthHeartRateSample(
 }
 
 /**
- * Converts Google Health data points into the Fitbit intraday JSON shape
- * currently consumed by data.php and download.php.
+ * Retrieves all Google Health heart-rate samples for one civil calendar
+ * day and immediately converts every page into the compact legacy dataset
+ * consumed by data.php and download.php.
  *
- * @param list<array<string, mixed>> $dataPoints
- * @return array<string, mixed>
+ * Raw Google Health data points are discarded after each page. Only the
+ * compact time/value rows survive into the next iteration.
+ *
+ * @return list<array{time: string, value: int}>
  */
-function googleHealthToLegacyFitbitHeartRate(
-    string $date,
-    array $dataPoints
+function googleHealthHeartRateDataset(
+    Client $client,
+    string $date
 ): array {
-    $samples = [];
+    $url =
+        GOOGLE_HEALTH_API_BASE .
+        '/users/me/dataTypes/heart-rate/dataPoints';
 
-    foreach ($dataPoints as $dataPoint) {
-        $sample =
-            googleHealthHeartRateSample(
-                $dataPoint
-            );
-
-        if ($sample === null) {
-            continue;
-        }
-
-        /*
-         * The civil-time API filter should already constrain the date.
-         * Preserve this check so an unexpected result cannot leak into
-         * another day's stored record.
-         */
-        if (
-            !str_starts_with(
-                $sample['timestamp'],
-                $date . ' '
-            )
-        ) {
-            continue;
-        }
-
-        $samples[] = $sample;
-    }
-
-    usort(
-        $samples,
-        static function (
-            array $left,
-            array $right
-        ): int {
-            return strcmp(
-                $left['timestamp'],
-                $right['timestamp']
-            );
-        }
-    );
+    $filter =
+        googleHealthHeartRateDateFilter(
+            $date
+        );
 
     $dataset = [];
+    $pageToken = null;
+    $seenPageTokens = [];
 
-    foreach ($samples as $sample) {
-        $dataset[] = [
-            'time' =>
-                $sample['time'],
+    do {
+        $query = [
+            'pageSize' =>
+                GOOGLE_HEALTH_HEART_RATE_PAGE_SIZE,
 
-            'value' =>
-                $sample['value'],
+            'filter' =>
+                $filter,
         ];
-    }
 
+        if (
+            is_string($pageToken) &&
+            $pageToken !== ''
+        ) {
+            $query['pageToken'] =
+                $pageToken;
+        }
+
+        $page = googleHealthGet(
+            $client,
+            $url,
+            $query
+        );
+
+        $pageDataPoints =
+            $page['dataPoints'] ??
+            [];
+
+        if (!is_array($pageDataPoints)) {
+            throw new UnexpectedValueException(
+                'Google Health returned an invalid dataPoints value.'
+            );
+        }
+
+        foreach ($pageDataPoints as $dataPoint) {
+            if (!is_array($dataPoint)) {
+                continue;
+            }
+
+            $sample =
+                googleHealthHeartRateSample(
+                    $dataPoint
+                );
+
+            if ($sample === null) {
+                continue;
+            }
+
+            /*
+             * The API filter should already restrict results to the
+             * requested civil date. Keep this defensive check so that
+             * an unexpected result cannot be stored under another day.
+             */
+            if (
+                !str_starts_with(
+                    $sample['timestamp'],
+                    $date . ' '
+                )
+            ) {
+                continue;
+            }
+
+            /*
+             * Retain only the fields required by the existing chart and
+             * export code.
+             */
+            $dataset[] = [
+                'time' =>
+                    $sample['time'],
+
+                'value' =>
+                    $sample['value'],
+            ];
+        }
+
+        $nextPageToken =
+            $page['nextPageToken'] ??
+            null;
+
+        /*
+         * Release the verbose decoded Google response before requesting
+         * another page.
+         */
+        unset(
+            $pageDataPoints,
+            $page
+        );
+
+        if (
+            $nextPageToken === null ||
+            $nextPageToken === ''
+        ) {
+            $pageToken = null;
+            continue;
+        }
+
+        if (!is_string($nextPageToken)) {
+            throw new UnexpectedValueException(
+                'Google Health returned an invalid nextPageToken.'
+            );
+        }
+
+        if (isset($seenPageTokens[$nextPageToken])) {
+            throw new RuntimeException(
+                'Google Health repeated a pagination token.'
+            );
+        }
+
+        $seenPageTokens[$nextPageToken] =
+            true;
+
+        $pageToken =
+            $nextPageToken;
+    } while ($pageToken !== null);
+
+    /*
+     * Google Health list results are returned newest first. The existing
+     * chart and table expect chronological order.
+     */
+    return array_reverse(
+        $dataset
+    );
+}
+
+/**
+ * Wraps an already compact heart-rate dataset in the legacy Fitbit JSON
+ * structure consumed by data.php and download.php.
+ *
+ * @param list<array{time: string, value: int}> $dataset
+ * @return array<string, mixed>
+ */
+function googleHealthLegacyHeartRateDocument(
+    string $date,
+    array $dataset
+): array {
     return [
         'activities-heart' => [
             [
-                'dateTime' => $date,
+                'dateTime' =>
+                    $date,
+
                 'value' => [
                     /*
-                     * Google Health heart-rate samples do not themselves
-                     * provide the legacy daily resting-rate or zone summary.
-                     * Those can be added later from the corresponding Google
-                     * Health daily data types.
+                     * Daily resting heart rate and zone summaries are not
+                     * included in raw Google Health heart-rate samples.
+                     * They can be added later from their daily data types.
                      */
-                    'heartRateZones' => [],
+                    'heartRateZones' =>
+                        [],
                 ],
             ],
         ],
@@ -547,7 +590,7 @@ function googleHealthToLegacyFitbitHeartRate(
 
 /**
  * Fetches one day of Google Health heart-rate data and returns both the
- * local storage key and the Fitbit-compatible JSON document.
+ * local storage key and the Fitbit-compatible document.
  *
  * @return array{
  *     user: string,
@@ -573,8 +616,8 @@ function googleHealthHeartRateDocument(
         $client
     );
 
-    $dataPoints =
-        googleHealthHeartRateDataPoints(
+    $dataset =
+        googleHealthHeartRateDataset(
             $client,
             $date
         );
@@ -587,9 +630,9 @@ function googleHealthHeartRateDocument(
             $identity,
 
         'document' =>
-            googleHealthToLegacyFitbitHeartRate(
+            googleHealthLegacyHeartRateDocument(
                 $date,
-                $dataPoints
+                $dataset
             ),
     ];
 }
