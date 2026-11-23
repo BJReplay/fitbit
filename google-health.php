@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Google\Client;
 
+require_once __DIR__ . '/google-identity.php';
 require_once __DIR__ . '/google-oauth.php';
 
 const GOOGLE_HEALTH_API_BASE =
@@ -325,18 +326,14 @@ function googleHealthCurrentUserId(
     string $redirectUri,
     string $googleSub
 ): string {
-    $sessionUserId =
-        $_SESSION['google_health_user_id'] ??
-        null;
 
-    if (
-        is_string($sessionUserId) &&
-        preg_match(
-            '/^[A-Za-z0-9-]{1,63}$/',
-            $sessionUserId
-        ) === 1
-    ) {
-        return $sessionUserId;
+    $healthUserId = googleHealthUserIdForGoogleSub(
+        $connection,
+        $googleSub
+    );
+
+    if ($healthUserId !== null) {
+        return $healthUserId;
     }
 
     $client = authorisedGoogleOAuthClient(
@@ -352,8 +349,11 @@ function googleHealthCurrentUserId(
     $healthUserId =
         $identity['healthUserId'];
 
-    $_SESSION['google_health_user_id'] =
-        $healthUserId;
+    saveGoogleHealthUserId(
+        $connection,
+        $googleSub,
+        $healthUserId
+    );
 
     return $healthUserId;
 }
@@ -1156,7 +1156,7 @@ function googleHealthHeartRateDocument(
 ): array {
     $client = authorisedGoogleOAuthClient(
         $connection,
-        $redirectUri, 
+        $redirectUri,
         $googleSub
     );
 
