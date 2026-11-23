@@ -68,7 +68,7 @@ try {
     saveGoogleOAuthToken($config_conn, $identity['googleSub'], $token);
 
     session_regenerate_id(true);
-    setGoogleAuthenticatedSession($identity, $healthUserId);
+    setGoogleAuthenticatedSession($identity);
 
     header('Location: data.php', true, 303);
     exit;
