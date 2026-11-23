@@ -114,7 +114,79 @@ $_SESSION['google_disconnect_token'] = $disconnectToken;
 
                 <div class="well">
 
-                    <?php if ($connected) { ?>
+                    <?php if (!$signedIn) { ?>
+
+                        <h4>
+                            <span class="label label-default">
+                                Signed Out
+                            </span>
+                        </h4>
+
+                        <p>
+                            No Google user is signed in to this browser.
+                        </p>
+
+                        <p>
+                            <a
+                                class="btn btn-primary"
+                                href="oauth-start.php">
+                                Sign in with Google
+                            </a>
+                        </p>
+
+                    <?php } elseif (!$connected) { ?>
+
+                        <h4>
+                            <span class="label label-default">
+                                Google Health Not Connected
+                            </span>
+                        </h4>
+
+                        <?php if ($safeConnectionError !== '') { ?>
+
+                            <div
+                                class="alert alert-warning"
+                                role="alert">
+                                <?php echo $safeConnectionError; ?>
+                            </div>
+
+                        <?php } ?>
+
+                        <p>
+                            You are signed in, but Google Health is not
+                            connected for this account.
+                        </p>
+
+                        <p>
+                            <a
+                                class="btn btn-primary"
+                                href="oauth-start.php">
+                                Connect Google Health
+                            </a>
+                        </p>
+
+                        <form
+                            action="logout.php"
+                            method="post">
+
+                            <input
+                                type="hidden"
+                                name="token"
+                                value="<?php echo htmlspecialchars(
+                                            $logoutToken,
+                                            ENT_QUOTES | ENT_SUBSTITUTE,
+                                            'UTF-8'
+                                        ); ?>">
+
+                            <button
+                                class="btn btn-default"
+                                type="submit">
+                                Log out from this browser
+                            </button>
+
+                        </form>
+
+                    <?php } else { ?>
 
                         <h4>
                             <span class="label label-success">
@@ -123,8 +195,7 @@ $_SESSION['google_disconnect_token'] = $disconnectToken;
                         </h4>
 
                         <p>
-                            This installation is connected to
-                            Google Health.
+                            This account is connected to Google Health.
                         </p>
 
                         <dl>
@@ -170,41 +241,6 @@ $_SESSION['google_disconnect_token'] = $disconnectToken;
                             </button>
 
                         </form>
-
-                    <?php } else { ?>
-
-                        <h4>
-                            <span class="label label-default">
-                                Google Health Not Connected
-                            </span>
-                        </h4>
-
-                        <?php if ($safeConnectionError !== '') { ?>
-
-                            <div
-                                class="alert alert-warning"
-                                role="alert">
-                                <?php echo $safeConnectionError; ?>
-                            </div>
-
-                        <?php } ?>
-
-                        <p>
-                            Connect this installation to your Google Health
-                            account to retrieve detailed heart-rate data.
-                        </p>
-
-                        <p>
-                            <a
-                                class="btn btn-primary"
-                                href="oauth-start.php">
-                                Connect Google Health
-                            </a>
-                        </p>
-
-                    <?php } ?>
-
-                    <?php if ($signedIn) { ?>
 
                         <form
                             action="logout.php"
