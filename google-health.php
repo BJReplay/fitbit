@@ -322,7 +322,8 @@ function googleHealthIdentity(
  */
 function googleHealthCurrentUserId(
     mysqli $connection,
-    string $redirectUri
+    string $redirectUri,
+    string $googleSub
 ): string {
     $sessionUserId =
         $_SESSION['google_health_user_id'] ??
@@ -340,7 +341,8 @@ function googleHealthCurrentUserId(
 
     $client = authorisedGoogleOAuthClient(
         $connection,
-        $redirectUri
+        $redirectUri,
+        $googleSub
     );
 
     $identity = googleHealthIdentity(
@@ -1148,11 +1150,14 @@ function googleHealthLegacyHeartRateDocument(
 function googleHealthHeartRateDocument(
     mysqli $connection,
     string $redirectUri,
-    string $date
+    string $date,
+    string $googleSub
+
 ): array {
     $client = authorisedGoogleOAuthClient(
         $connection,
-        $redirectUri
+        $redirectUri, 
+        $googleSub
     );
 
     $identity = googleHealthIdentity(
