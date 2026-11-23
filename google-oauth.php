@@ -7,11 +7,11 @@ use Google\Client;
 require_once __DIR__ . '/vendor/autoload.php';
 
 const GOOGLE_HEALTH_READ_SCOPE =
-'https://www.googleapis.com/auth/' .
+'https://<scrubbed-url-domain>/auth/' .
     'googlehealth.health_metrics_and_measurements.readonly';
 
 const GOOGLE_HEALTH_ACTIVITY_READ_SCOPE =
-'https://www.googleapis.com/auth/' .
+'https://<scrubbed-url-domain>/auth/' .
     'googlehealth.activity_and_fitness.readonly';
 
 /**
@@ -48,7 +48,7 @@ function createGoogleOAuthClient(string $redirectUri): Client
     $client = new Client();
 
     $client->setApplicationName(
-        'Fitbit Heart Rate Intraday Data'
+        'Google Health Heart Rate Intraday Data'
     );
 
     $client->setClientId(
@@ -72,185 +72,87 @@ function createGoogleOAuthClient(string $redirectUri): Client
         GOOGLE_HEALTH_ACTIVITY_READ_SCOPE,
     ]);
 
-    /*
-     * Request offline access so that Google can issue a refresh token.
-     */
     $client->setAccessType('offline');
-
     $client->setIncludeGrantedScopes(true);
 
     return $client;
 }
 
-/**
- * Loads and validates the key used to encrypt OAuth credentials.
- */
 function googleOAuthEncryptionKey(): string
 {
     if (!extension_loaded('sodium')) {
-        throw new RuntimeException(
-            'The PHP sodium extension is required.'
-        );
+        throw new RuntimeException('The PHP sodium extension is required.');
     }
 
-    $encodedKey = requiredEnvironmentVariable(
-        'GOOGLE_OAUTH_ENCRYPTION_KEY'
-    );
+    $encodedKey = requiredEnvironmentVariable('GOOGLE_OAUTH_ENCRYPTION_KEY');
+    $key = base64_decode($encodedKey, true);
 
-    $key = base64_decode(
-        $encodedKey,
-        true
-    );
-
-    if (
-        $key === false ||
-        strlen($key) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES
-    ) {
+    if ($key === false || strlen($key) !== SODIUM_CRYPTO_SECRETBOX_KEYBYTES) {
         throw new RuntimeException(
-            'GOOGLE_OAUTH_ENCRYPTION_KEY must be a ' .
-                'Base64-encoded 32-byte key.'
+            'GOOGLE_OAUTH_ENCRYPTION_KEY must be a Base64-encoded 32-byte key.'
         );
     }
 
     return $key;
 }
 
-/**
- * Encrypts an OAuth token bundle for database storage.
- *
- * The random nonce is stored in front of the ciphertext. The nonce does
- * not need to be secret.
- *
- * @param array<string, mixed> $token
- */
+/** @param array<string, mixed> $token */
 function encryptGoogleOAuthToken(array $token): string
 {
     if ($token === []) {
-        throw new InvalidArgumentException(
-            'The Google OAuth token must not be empty.'
-        );
+        throw new InvalidArgumentException('The Google OAuth token must not be empty.');
     }
 
-    $json = json_encode(
-        $token,
-        JSON_THROW_ON_ERROR |
-            JSON_UNESCAPED_SLASHES
-    );
+    $json = json_encode($token, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+    $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+    $ciphertext = sodium_crypto_secretbox($json, $nonce, googleOAuthEncryptionKey());
 
-    $nonce = random_bytes(
-        SODIUM_CRYPTO_SECRETBOX_NONCEBYTES
-    );
-
-    $ciphertext = sodium_crypto_secretbox(
-        $json,
-        $nonce,
-        googleOAuthEncryptionKey()
-    );
-
-    return base64_encode(
-        $nonce . $ciphertext
-    );
+    return base64_encode($nonce . $ciphertext);
 }
 
-/**
- * Decrypts an OAuth token bundle loaded from the database.
- *
- * @return array<string, mixed>
- */
-function decryptGoogleOAuthToken(
-    string $encryptedToken
-): array {
+/** @return array<string, mixed> */
+function decryptGoogleOAuthToken(string $encryptedToken): array
+{
     if ($encryptedToken === '') {
-        throw new InvalidArgumentException(
-            'The encrypted Google OAuth token is empty.'
-        );
+        throw new InvalidArgumentException('The encrypted Google OAuth token is empty.');
     }
 
-    $payload = base64_decode(
-        $encryptedToken,
-        true
-    );
-
+    $payload = base64_decode($encryptedToken, true);
     if ($payload === false) {
-        throw new RuntimeException(
-            'The stored Google OAuth token is not valid Base64.'
-        );
+        throw new RuntimeException('The stored Google OAuth token is not valid Base64.');
     }
 
-    if (
-        strlen($payload) <=
-        SODIUM_CRYPTO_SECRETBOX_NONCEBYTES
-    ) {
-        throw new RuntimeException(
-            'The stored Google OAuth token is incomplete.'
-        );
+    if (strlen($payload) <= SODIUM_CRYPTO_SECRETBOX_NONCEBYTES) {
+        throw new RuntimeException('The stored Google OAuth token is incomplete.');
     }
 
-    $nonce = substr(
-        $payload,
-        0,
-        SODIUM_CRYPTO_SECRETBOX_NONCEBYTES
-    );
-
-    $ciphertext = substr(
-        $payload,
-        SODIUM_CRYPTO_SECRETBOX_NONCEBYTES
-    );
-
-    $json = sodium_crypto_secretbox_open(
-        $ciphertext,
-        $nonce,
-        googleOAuthEncryptionKey()
-    );
+    $nonce = substr($payload, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+    $ciphertext = substr($payload, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+    $json = sodium_crypto_secretbox_open($ciphertext, $nonce, googleOAuthEncryptionKey());
 
     if ($json === false) {
-        throw new RuntimeException(
-            'The stored Google OAuth token could not be decrypted.'
-        );
+        throw new RuntimeException('The stored Google OAuth token could not be decrypted.');
     }
 
-    $token = json_decode(
-        $json,
-        true,
-        512,
-        JSON_THROW_ON_ERROR
-    );
-
+    $token = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
     if (!is_array($token)) {
-        throw new UnexpectedValueException(
-            'The stored Google OAuth token is not a JSON object.'
-        );
+        throw new UnexpectedValueException('The stored Google OAuth token is not a JSON object.');
     }
 
     return $token;
 }
 
-/**
- * Stores the single installation's encrypted OAuth token.
- *
- * @param array<string, mixed> $token
- */
-function saveGoogleOAuthToken(
-    mysqli $connection,
-    array $token
-): void {
-    $accessToken =
-        $token['access_token'] ??
-        null;
-
-    if (
-        !is_string($accessToken) ||
-        $accessToken === ''
-    ) {
+/** @param array<string, mixed> $token */
+function saveGoogleOAuthToken(mysqli $connection, array $token): void
+{
+    $accessToken = $token['access_token'] ?? null;
+    if (!is_string($accessToken) || $accessToken === '') {
         throw new InvalidArgumentException(
             'The Google OAuth response does not contain an access token.'
         );
     }
 
-    $encryptedToken = encryptGoogleOAuthToken(
-        $token
-    );
-
+    $encryptedToken = encryptGoogleOAuthToken($token);
     $statement = mysqli_prepare(
         $connection,
         'INSERT INTO oauth_credentials
@@ -261,217 +163,93 @@ function saveGoogleOAuthToken(
             encrypted_token = ?,
             updated_at = UTC_TIMESTAMP()'
     );
-
-    mysqli_stmt_bind_param(
-        $statement,
-        'ss',
-        $encryptedToken,
-        $encryptedToken
-    );
-
-    mysqli_stmt_execute(
-        $statement
-    );
-
-    mysqli_stmt_close(
-        $statement
-    );
+    mysqli_stmt_bind_param($statement, 'ss', $encryptedToken, $encryptedToken);
+    mysqli_stmt_execute($statement);
+    mysqli_stmt_close($statement);
 }
 
-/**
- * Loads the stored OAuth token.
- *
- * Returns null if this installation has not yet been authorised.
- *
- * @return array<string, mixed>|null
- */
-function loadGoogleOAuthToken(
-    mysqli $connection
-): ?array {
+/** @return array<string, mixed>|null */
+function loadGoogleOAuthToken(mysqli $connection): ?array
+{
     $statement = mysqli_prepare(
         $connection,
-        'SELECT encrypted_token
-           FROM oauth_credentials
-          WHERE id = 1'
+        'SELECT encrypted_token FROM oauth_credentials WHERE id = 1'
     );
-
-    mysqli_stmt_execute(
-        $statement
-    );
-
-    /*
-     * Initialise the bound value explicitly as a string.
-     * encrypted_token is NOT NULL in the database schema.
-     */
+    mysqli_stmt_execute($statement);
     $encryptedToken = '';
-
-    mysqli_stmt_bind_result(
-        $statement,
-        $encryptedToken
-    );
-
-    $fetched = mysqli_stmt_fetch(
-        $statement
-    );
-
-    mysqli_stmt_close(
-        $statement
-    );
+    mysqli_stmt_bind_result($statement, $encryptedToken);
+    $fetched = mysqli_stmt_fetch($statement);
+    mysqli_stmt_close($statement);
 
     if ($fetched !== true) {
         return null;
     }
 
     if ($encryptedToken === '') {
-        throw new UnexpectedValueException(
-            'The stored Google OAuth credentials are empty.'
-        );
+        throw new UnexpectedValueException('The stored Google OAuth credentials are empty.');
     }
 
-    return decryptGoogleOAuthToken(
-        $encryptedToken
-    );
+    return decryptGoogleOAuthToken($encryptedToken);
 }
 
-/**
- * Removes this installation's locally stored OAuth credentials.
- */
-function deleteGoogleOAuthToken(
-    mysqli $connection
-): void {
-    $statement = mysqli_prepare(
-        $connection,
-        'DELETE FROM oauth_credentials
-          WHERE id = 1'
-    );
-
-    mysqli_stmt_execute(
-        $statement
-    );
-
-    mysqli_stmt_close(
-        $statement
-    );
+function deleteGoogleOAuthToken(mysqli $connection): void
+{
+    $statement = mysqli_prepare($connection, 'DELETE FROM oauth_credentials WHERE id = 1');
+    mysqli_stmt_execute($statement);
+    mysqli_stmt_close($statement);
 }
 
-/**
- * Returns a Google OAuth client with a valid access token.
- *
- * If the stored access token has expired, the refresh token is used to
- * obtain a replacement access token and the updated token bundle is
- * persisted.
- */
-function authorisedGoogleOAuthClient(
-    mysqli $connection,
-    string $redirectUri
-): Client {
-    $storedToken = loadGoogleOAuthToken(
-        $connection
-    );
-
+function authorisedGoogleOAuthClient(mysqli $connection, string $redirectUri): Client
+{
+    $storedToken = loadGoogleOAuthToken($connection);
     if ($storedToken === null) {
-        throw new RuntimeException(
-            'Google Health has not been authorised.'
-        );
+        throw new RuntimeException('Google Health has not been authorised.');
     }
 
-    $client = createGoogleOAuthClient(
-        $redirectUri
-    );
-
-    $client->setAccessToken(
-        $storedToken
-    );
+    $client = createGoogleOAuthClient($redirectUri);
+    $client->setAccessToken($storedToken);
 
     if (!$client->isAccessTokenExpired()) {
         return $client;
     }
 
-    $refreshToken =
-        $storedToken['refresh_token'] ??
-        $client->getRefreshToken();
-
-    if (
-        !is_string($refreshToken) ||
-        $refreshToken === ''
-    ) {
+    $refreshToken = $storedToken['refresh_token'] ?? $client->getRefreshToken();
+    if (!is_string($refreshToken) || $refreshToken === '') {
         throw new RuntimeException(
-            'The Google OAuth refresh token is unavailable. ' .
-                'Google Health must be authorised again.'
+            'The Google OAuth refresh token is unavailable. Google Health must be authorised again.'
         );
     }
 
-    $refreshedToken =
-        $client->fetchAccessTokenWithRefreshToken(
-            $refreshToken
-        );
+    $refreshedToken = $client->fetchAccessTokenWithRefreshToken($refreshToken);
+    $refreshError = $refreshedToken['error'] ?? null;
 
-    $refreshError =
-        $refreshedToken['error'] ??
-        null;
-
-    if (
-        is_string($refreshError) &&
-        $refreshError !== ''
-    ) {
-        $description =
-            $refreshedToken['error_description'] ??
-            $refreshError;
-
+    if (is_string($refreshError) && $refreshError !== '') {
+        $description = $refreshedToken['error_description'] ?? $refreshError;
         throw new RuntimeException(
-            'Unable to refresh the Google access token: ' .
-                (string) $description
+            'Unable to refresh the Google access token: ' . (string) $description
         );
     }
 
-    $newAccessToken =
-        $refreshedToken['access_token'] ??
-        null;
-
-    if (
-        !is_string($newAccessToken) ||
-        $newAccessToken === ''
-    ) {
-        throw new UnexpectedValueException(
-            'Google did not return a refreshed access token.'
-        );
+    $newAccessToken = $refreshedToken['access_token'] ?? null;
+    if (!is_string($newAccessToken) || $newAccessToken === '') {
+        throw new UnexpectedValueException('Google did not return a refreshed access token.');
     }
 
-    /*
-     * Google may not repeat the refresh token in a refresh response.
-     * Preserve the existing refresh token when it is omitted.
-     */
     if (
         !isset($refreshedToken['refresh_token']) ||
         !is_string($refreshedToken['refresh_token']) ||
         $refreshedToken['refresh_token'] === ''
     ) {
-        $refreshedToken['refresh_token'] =
-            $refreshToken;
+        $refreshedToken['refresh_token'] = $refreshToken;
     }
 
-    saveGoogleOAuthToken(
-        $connection,
-        $refreshedToken
-    );
-
-    $client->setAccessToken(
-        $refreshedToken
-    );
+    saveGoogleOAuthToken($connection, $refreshedToken);
+    $client->setAccessToken($refreshedToken);
 
     return $client;
 }
 
-/**
- * Returns whether this installation has stored Google OAuth credentials.
- *
- * This checks only local storage. It does not contact Google or establish
- * whether the stored credentials are still valid.
- */
-function hasStoredGoogleOAuthToken(
-    mysqli $connection
-): bool {
-    return loadGoogleOAuthToken(
-        $connection
-    ) !== null;
+function hasStoredGoogleOAuthToken(mysqli $connection): bool
+{
+    return loadGoogleOAuthToken($connection) !== null;
 }
