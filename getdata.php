@@ -90,28 +90,44 @@ try {
 
     mysqli_stmt_execute($statement);
     mysqli_stmt_close($statement);
-} catch (GoogleHealthIdentityMismatchException $exception) {
+} catch (RuntimeException $exception) {
+    if (
+        $exception->getMessage() ===
+        'Google Health identity does not match the authenticated application user.'
+    ) {
+        error_log(
+            sprintf(
+                'Google Health identity mismatch for %s: %s',
+                $date,
+                $exception->getMessage()
+            )
+        );
+
+        http_response_code(409);
+
+        exit(
+            'Google Health account mismatch. ' .
+            'The connected Google Health account does not match the ' .
+            'account associated with this application user. ' .
+            'No health data was retrieved or stored. ' .
+            '<a href="index.php">Return to the home page</a>.'
+        );
+    }
+
     error_log(
         sprintf(
-            'Google Health identity mismatch for %s: %s',
+            'Unable to retrieve/store Google Health data for %s: %s',
             $date,
             $exception->getMessage()
         )
     );
 
-    http_response_code(409);
+    http_response_code(502);
 
-    exit(
-        'Google Health account mismatch. ' .
-        'The connected Google Health account does not match the ' .
-        'account associated with this application user. ' .
-        'No health data was retrieved or stored. ' .
-        '<a href="index.php">Return to the home page</a>.'
-    );
+    exit('Unable to retrieve Google Health heart-rate data.');
 } catch (
     JsonException |
     InvalidArgumentException |
-    RuntimeException |
     UnexpectedValueException |
     mysqli_sql_exception $exception
 ) {
