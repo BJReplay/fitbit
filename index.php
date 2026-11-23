@@ -244,8 +244,8 @@ $_SESSION['google_logout_token'] =
 
                 <p>
                     The project is open source and available at
-                    <a href="https://github.com/BJReplay/fitbit">
-                        https://github.com/BJReplay/fitbit
+                    <a href="<?php echo PROJECT_SOURCE_URL; ?>">
+                        <?php echo PROJECT_SOURCE_URL; ?>
                     </a>.
                 </p>
 
