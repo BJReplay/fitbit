@@ -7,7 +7,8 @@ require_once __DIR__ . '/google-oauth.php';
 require_once __DIR__ . '/google-identity.php';
 require_once __DIR__ . '/google-health.php';
 
-function googleOAuthCallbackFailure(string $logMessage): never {
+function googleOAuthCallbackFailure(string $logMessage): never
+{
     unset($_SESSION['google_oauth_state'], $_SESSION['google_oauth_code_verifier']);
     error_log($logMessage);
     http_response_code(400);

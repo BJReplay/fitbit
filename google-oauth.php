@@ -7,11 +7,11 @@ use Google\Client;
 require_once __DIR__ . '/vendor/autoload.php';
 
 const GOOGLE_HEALTH_READ_SCOPE =
-'https://<scrubbed-url-domain>/auth/' .
+'https://www.googleapis.com/auth/' .
     'googlehealth.health_metrics_and_measurements.readonly';
 
 const GOOGLE_HEALTH_ACTIVITY_READ_SCOPE =
-'https://<scrubbed-url-domain>/auth/' .
+'https://www.googleapis.com/auth/' .
     'googlehealth.activity_and_fitness.readonly';
 
 /**
