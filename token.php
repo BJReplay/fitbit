@@ -64,7 +64,27 @@ try {
     $healthIdentity = googleHealthIdentity($client);
     $healthUserId = $healthIdentity['healthUserId'];
 
-    saveGoogleHealthUserId($config_conn, $identity['googleSub'], $healthUserId);
+    $expectedHealthUserId = googleHealthUserIdForGoogleSub(
+        $config_conn,
+        $identity['googleSub']
+    );
+
+    if ($expectedHealthUserId === null) {
+        saveGoogleHealthUserId(
+            $config_conn,
+            $identity['googleSub'],
+            $healthUserId
+        );
+    } elseif (!hash_equals(
+        $expectedHealthUserId,
+        $healthUserId
+    )) {
+        throw new RuntimeException(
+            'Google Health identity does not match ' .
+                'the authenticated application user.'
+        );
+    }
+
     saveGoogleOAuthToken($config_conn, $identity['googleSub'], $token);
 
     session_regenerate_id(true);
