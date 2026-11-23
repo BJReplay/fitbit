@@ -49,13 +49,9 @@ try {
     );
 
     $healthUserId = $result['user'];
-
     $document = $result['document'];
 
-    if (
-        !is_string($healthUserId) ||
-        $healthUserId === ''
-    ) {
+    if (!is_string($healthUserId) || $healthUserId === '') {
         throw new UnexpectedValueException(
             'Google Health returned no usable user identifier.'
         );
@@ -72,9 +68,6 @@ try {
         JSON_THROW_ON_ERROR |
             JSON_UNESCAPED_SLASHES
     );
-
-    $_SESSION['google_health_user_id'] =
-        $healthUserId;
 
     $statement = mysqli_prepare(
         $config_conn,
@@ -95,13 +88,8 @@ try {
         $json
     );
 
-    mysqli_stmt_execute(
-        $statement
-    );
-
-    mysqli_stmt_close(
-        $statement
-    );
+    mysqli_stmt_execute($statement);
+    mysqli_stmt_close($statement);
 } catch (
     JsonException |
     InvalidArgumentException |
@@ -122,18 +110,13 @@ try {
     exit('Unable to retrieve Google Health heart-rate data.');
 }
 
-mysqli_close(
-    $config_conn
-);
+mysqli_close($config_conn);
 
 header(
     'Location: data.php?date=' .
         rawurlencode($next) .
         '&rand=' .
-        random_int(
-            0,
-            PHP_INT_MAX
-        )
+        random_int(0, PHP_INT_MAX)
 );
 
 exit;
