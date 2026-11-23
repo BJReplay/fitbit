@@ -6,7 +6,7 @@ It began as a Fitbit intraday heart-rate project and retains some legacy Fitbit-
 
 ## Why was this created?
 
-This project was inspired by <https://<scrubbed-url-domain>/technotablet/fitbit> by my need to track SVT that had not responded to two rounds of ablation and became more problematic post-COVID.
+This project was inspired by <https://github.com/technotablet/fitbit> by my need to track SVT that had not responded to two rounds of ablation and became more problematic post-COVID.
 
 The high-resolution heart-rate data provides a useful long-term record that can be reviewed alongside clinical care. It is not a replacement for clinical monitoring such as a Holter monitor or ECG.
 
@@ -128,7 +128,7 @@ Protect the application host, database, environment file and `GOOGLE_OAUTH_ENCRY
 
 ## Demo
 
-A demo is available at <https://<scrubbed-url-domain>/fitbit>.
+A demo of the original inspiration is available at <https://exain.com/fitbit>.
 
 ## Licence and history
 
