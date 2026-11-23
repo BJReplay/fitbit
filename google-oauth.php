@@ -7,11 +7,11 @@ use Google\Client;
 require_once __DIR__ . '/vendor/autoload.php';
 
 const GOOGLE_HEALTH_READ_SCOPE =
-'https://www.googleapis.com/auth/' .
+'https://<scrubbed-url-domain>/auth/' .
     'googlehealth.health_metrics_and_measurements.readonly';
 
 const GOOGLE_HEALTH_ACTIVITY_READ_SCOPE =
-'https://www.googleapis.com/auth/' .
+'https://<scrubbed-url-domain>/auth/' .
     'googlehealth.activity_and_fitness.readonly';
 
 /**
@@ -68,6 +68,9 @@ function createGoogleOAuthClient(string $redirectUri): Client
     );
 
     $client->setScopes([
+        'openid',
+        'email',
+        'profile',
         GOOGLE_HEALTH_READ_SCOPE,
         GOOGLE_HEALTH_ACTIVITY_READ_SCOPE,
     ]);

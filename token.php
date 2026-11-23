@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 include_once 'config.php';
 require_once __DIR__ . '/google-oauth.php';
+require_once __DIR__ . '/google-identity.php';
 
 /**
  * Fails an invalid OAuth callback without exposing OAuth credentials
@@ -158,23 +159,30 @@ try {
         );
     }
 
+    $identity = googleAuthenticatedIdentity(
+        $client,
+        $token
+    );
+
+    saveGoogleAuthenticatedUser(
+        $config_conn,
+        $identity
+    );
+
     saveGoogleOAuthToken(
         $config_conn,
         $token
     );
 
-    /*
-    * The newly authorised token may represent a different Google account.
-    * Force the application to resolve its Google Health identity again.
-    */
     unset(
         $_SESSION['google_health_user_id']
     );
 
-    /*
-     * Rotate the session after successfully completing authorisation.
-     */
     session_regenerate_id(true);
+
+    setGoogleAuthenticatedSession(
+        $identity
+    );
 
     header(
         'Location: data.php',
