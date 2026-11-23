@@ -177,7 +177,6 @@ try {
 				$config_conn,
 				$healthUserId,
 				$date,
-				$googleSub
 			);
 
 			if ($document !== null) {
