@@ -19,11 +19,11 @@ $signedIn =
 
 try {
     if (
-    $signedIn &&
+        $signedIn &&
         hasStoredGoogleOAuthToken(
-        $config_conn,
-        $googleSub
-    )
+            $config_conn,
+            $googleSub
+        )
     ) {
         $healthUserId = googleHealthCurrentUserId(
             $config_conn,
@@ -55,13 +55,11 @@ $safeConnectionError = htmlspecialchars(
     'UTF-8'
 );
 
-$logoutToken =
-    bin2hex(
-        random_bytes(32)
-    );
+$logoutToken = bin2hex(random_bytes(32));
+$_SESSION['google_logout_token'] = $logoutToken;
 
-$_SESSION['google_logout_token'] =
-    $logoutToken;
+$disconnectToken = bin2hex(random_bytes(32));
+$_SESSION['google_disconnect_token'] = $disconnectToken;
 
 ?>
 <!DOCTYPE html>
@@ -153,25 +151,26 @@ $_SESSION['google_logout_token'] =
                         </p>
 
                         <form
-                            action="logout.php"
+                            action="disconnect.php"
                             method="post">
 
                             <input
                                 type="hidden"
                                 name="token"
                                 value="<?php echo htmlspecialchars(
-                                            $logoutToken,
+                                            $disconnectToken,
                                             ENT_QUOTES | ENT_SUBSTITUTE,
                                             'UTF-8'
                                         ); ?>">
 
                             <button
-                                class="btn btn-default"
+                                class="btn btn-warning"
                                 type="submit">
-                                Log Out
+                                Disconnect Google Health
                             </button>
 
                         </form>
+
                     <?php } else { ?>
 
                         <h4>
@@ -202,6 +201,31 @@ $_SESSION['google_logout_token'] =
                                 Connect Google Health
                             </a>
                         </p>
+
+                    <?php } ?>
+
+                    <?php if ($signedIn) { ?>
+
+                        <form
+                            action="logout.php"
+                            method="post">
+
+                            <input
+                                type="hidden"
+                                name="token"
+                                value="<?php echo htmlspecialchars(
+                                            $logoutToken,
+                                            ENT_QUOTES | ENT_SUBSTITUTE,
+                                            'UTF-8'
+                                        ); ?>">
+
+                            <button
+                                class="btn btn-default"
+                                type="submit">
+                                Log out from this browser
+                            </button>
+
+                        </form>
 
                     <?php } ?>
 
