@@ -19,9 +19,7 @@ function googleAuthenticatedIdentity(
     Client $client,
     array $token
 ): array {
-    $idToken =
-        $token['id_token'] ??
-        null;
+    $idToken = $token['id_token'] ?? null;
 
     if (!is_string($idToken) || $idToken === '') {
         throw new UnexpectedValueException(
@@ -29,9 +27,7 @@ function googleAuthenticatedIdentity(
         );
     }
 
-    $payload = $client->verifyIdToken(
-        $idToken
-    );
+    $payload = $client->verifyIdToken($idToken);
 
     if (!is_array($payload)) {
         throw new RuntimeException(
@@ -39,9 +35,7 @@ function googleAuthenticatedIdentity(
         );
     }
 
-    $googleSub =
-        $payload['sub'] ??
-        null;
+    $googleSub = $payload['sub'] ?? null;
 
     if (!is_string($googleSub) || $googleSub === '') {
         throw new UnexpectedValueException(
@@ -49,31 +43,20 @@ function googleAuthenticatedIdentity(
         );
     }
 
-    $email =
-        $payload['email'] ??
-        null;
-
+    $email = $payload['email'] ?? null;
     if (!is_string($email) || $email === '') {
         $email = null;
     }
 
-    $displayName =
-        $payload['name'] ??
-        null;
-
+    $displayName = $payload['name'] ?? null;
     if (!is_string($displayName) || $displayName === '') {
         $displayName = null;
     }
 
     return [
-        'googleSub' =>
-        $googleSub,
-
-        'email' =>
-        $email,
-
-        'displayName' =>
-        $displayName,
+        'googleSub' => $googleSub,
+        'email' => $email,
+        'displayName' => $displayName,
     ];
 }
 
@@ -82,9 +65,7 @@ function googleAuthenticatedIdentity(
  */
 function authenticatedGoogleSub(): string
 {
-    $googleSub =
-        $_SESSION['google_user_sub'] ??
-        null;
+    $googleSub = $_SESSION['google_user_sub'] ?? null;
 
     if (!is_string($googleSub) || trim($googleSub) === '') {
         throw new RuntimeException(
@@ -118,22 +99,11 @@ function googleHealthUserIdForGoogleSub(
     );
 
     try {
-        mysqli_stmt_bind_param(
-            $statement,
-            's',
-            $googleSub
-        );
-
-        mysqli_stmt_execute(
-            $statement
-        );
+        mysqli_stmt_bind_param($statement, 's', $googleSub);
+        mysqli_stmt_execute($statement);
 
         $healthUserId = null;
-
-        mysqli_stmt_bind_result(
-            $statement,
-            $healthUserId
-        );
+        mysqli_stmt_bind_result($statement, $healthUserId);
 
         if (!mysqli_stmt_fetch($statement)) {
             throw new UnexpectedValueException(
@@ -141,9 +111,7 @@ function googleHealthUserIdForGoogleSub(
             );
         }
     } finally {
-        mysqli_stmt_close(
-            $statement
-        );
+        mysqli_stmt_close($statement);
     }
 
     if ($healthUserId === null) {
@@ -196,13 +164,8 @@ function saveGoogleAuthenticatedUser(
         $displayName
     );
 
-    mysqli_stmt_execute(
-        $statement
-    );
-
-    mysqli_stmt_close(
-        $statement
-    );
+    mysqli_stmt_execute($statement);
+    mysqli_stmt_close($statement);
 }
 
 /**
@@ -234,23 +197,17 @@ function saveGoogleHealthUserId(
         $googleSub
     );
 
-    mysqli_stmt_execute(
-        $statement
-    );
+    mysqli_stmt_execute($statement);
 
     if (mysqli_stmt_affected_rows($statement) < 1) {
-        mysqli_stmt_close(
-            $statement
-        );
+        mysqli_stmt_close($statement);
 
         throw new UnexpectedValueException(
             'Unable to link the Google Health identity to the application user.'
         );
     }
 
-    mysqli_stmt_close(
-        $statement
-    );
+    mysqli_stmt_close($statement);
 }
 
 /**
@@ -262,21 +219,9 @@ function saveGoogleHealthUserId(
  *     displayName: string|null
  * } $identity
  */
-function setGoogleAuthenticatedSession(
-    array $identity,
-    ?string $healthUserId = null
-): void {
-    $_SESSION['google_user_sub'] =
-        $identity['googleSub'];
-
-    $_SESSION['google_user_email'] =
-        $identity['email'];
-
-    $_SESSION['google_user_name'] =
-        $identity['displayName'];
-
-    if ($healthUserId !== null) {
-        $_SESSION['google_health_user_id'] =
-            $healthUserId;
-    }
+function setGoogleAuthenticatedSession(array $identity): void
+{
+    $_SESSION['google_user_sub'] = $identity['googleSub'];
+    $_SESSION['google_user_email'] = $identity['email'];
+    $_SESSION['google_user_name'] = $identity['displayName'];
 }
