@@ -1167,8 +1167,27 @@ function googleHealthHeartRateDocument(
     $healthUserId =
         $identity['healthUserId'];
 
-    $_SESSION['google_health_user_id'] =
-        $healthUserId;
+    $expectedHealthUserId =
+        googleHealthUserIdForGoogleSub(
+            $connection,
+            $googleSub
+        );
+
+    if ($expectedHealthUserId === null) {
+        saveGoogleHealthUserId(
+            $connection,
+            $googleSub,
+            $healthUserId
+        );
+    } elseif (!hash_equals(
+        $expectedHealthUserId,
+        $healthUserId
+    )) {
+        throw new RuntimeException(
+            'Google Health identity does not match ' .
+                'the authenticated application user.'
+        );
+    }
 
     $dataset = googleHealthHeartRateDataset(
         $client,
