@@ -34,38 +34,60 @@ include_once __DIR__ . '/functions.php';
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-// Retrieve and validate the database connection string.
-$conn = getenv('MYSQLCONNSTR_localdb');
-if (!is_string($conn) || trim($conn) === '') {
-    error_log('MYSQLCONNSTR_localdb is not configured.');
+// Retrieve and validate the database configuration.
+$databaseEnvironment = [];
+
+foreach (
+    [
+        'MYSQL_HOST',
+        'MYSQL_PORT',
+        'MYSQL_DATABASE',
+        'MYSQL_USER',
+        'MYSQL_PASSWORD',
+    ] as $environmentName
+) {
+    $value = getenv($environmentName);
+
+    if (!is_string($value) || trim($value) === '') {
+        error_log(
+            sprintf(
+                '%s is not configured.',
+                $environmentName
+            )
+        );
+
+        http_response_code(503);
+        exit('The service is temporarily unavailable.');
+    }
+
+    $databaseEnvironment[$environmentName] = trim($value);
+}
+
+$host = $databaseEnvironment['MYSQL_HOST'];
+$user = $databaseEnvironment['MYSQL_USER'];
+$pass = $databaseEnvironment['MYSQL_PASSWORD'];
+$dbname = $databaseEnvironment['MYSQL_DATABASE'];
+
+$portValue = $databaseEnvironment['MYSQL_PORT'];
+
+if (
+    filter_var(
+        $portValue,
+        FILTER_VALIDATE_INT,
+        [
+            'options' => [
+                'min_range' => 1,
+                'max_range' => 65535,
+            ],
+        ]
+    ) === false
+) {
+    error_log('MYSQL_PORT is not a valid TCP port.');
     http_response_code(503);
     exit('The service is temporarily unavailable.');
 }
 
-$conarr = [];
-foreach (explode(';', $conn) as $value) {
-    $separator = strpos($value, '=');
-    if ($separator === false) {
-        continue;
-    }
-    $key = trim(substr($value, 0, $separator));
-    if ($key !== '') {
-        $conarr[$key] = substr($value, $separator + 1);
-    }
-}
-
-foreach (['Data Source', 'User Id', 'Password', 'Database'] as $requiredKey) {
-    if (!array_key_exists($requiredKey, $conarr)) {
-        error_log(sprintf('MYSQLCONNSTR_localdb is missing the "%s" field.', $requiredKey));
-        http_response_code(503);
-        exit('The service is temporarily unavailable.');
-    }
-}
-
-$host = $conarr['Data Source'];
-$user = $conarr['User Id'];
-$pass = $conarr['Password'];
-$dbname = $conarr['Database'];
+$port = (int) $portValue;
 
 $config_base_host = getenv('WEBSITE_HOSTNAME');
 if (!is_string($config_base_host) || trim($config_base_host) === '') {
@@ -77,7 +99,14 @@ if (!is_string($config_base_host) || trim($config_base_host) === '') {
 $config_redirect_uri = 'https://' . trim($config_base_host) . '/token.php';
 
 try {
-    $config_conn = mysqli_connect($host, $user, $pass, $dbname);
+    $config_conn = mysqli_connect(
+        $host,
+        $user,
+        $pass,
+        $dbname,
+        $port
+    );
+
     mysqli_set_charset($config_conn, 'utf8mb4');
 } catch (mysqli_sql_exception $exception) {
     error_log('Database connection failed: ' . $exception->getMessage());

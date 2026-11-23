@@ -6,7 +6,7 @@ It began as a Fitbit intraday heart-rate project and retains some legacy Fitbit-
 
 ## Why was this created?
 
-This project was inspired by <https://github.com/technotablet/fitbit> by my need to track SVT that had not responded to two rounds of ablation and became more problematic post-COVID.
+This project was inspired by <https://<scrubbed-url-domain>/technotablet/fitbit> by my need to track SVT that had not responded to two rounds of ablation and became more problematic post-COVID.
 
 The high-resolution heart-rate data provides a useful long-term record that can be reviewed alongside clinical care. It is not a replacement for clinical monitoring such as a Holter monitor or ECG.
 
@@ -43,9 +43,13 @@ The application expects these environment variables:
 - `GOOGLE_OAUTH_CLIENT_ID`
 - `GOOGLE_OAUTH_CLIENT_SECRET`
 - `GOOGLE_OAUTH_ENCRYPTION_KEY`
-- `MYSQLCONNSTR_localdb`
+- `MYSQL_HOST`
+- `MYSQL_PORT`
+- `MYSQL_DATABASE`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
 
-The Docker Compose example also uses the MySQL environment variables shown in `.env.fitbit.sample`.
+The Docker Compose example also uses the additional MySQL environment variables shown in `.env.fitbit.sample`.
 
 `GOOGLE_OAUTH_ENCRYPTION_KEY` is used to encrypt the OAuth token bundle before it is stored in the database.
 
@@ -110,7 +114,7 @@ Protect the application host, database, environment file and `GOOGLE_OAUTH_ENCRY
 
 ## Demo
 
-A demo is available at <https://exain.com/fitbit>.
+A demo is available at <https://<scrubbed-url-domain>/fitbit>.
 
 ## Licence and history
 
