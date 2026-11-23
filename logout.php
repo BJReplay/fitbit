@@ -43,9 +43,19 @@ unset(
 );
 
 try {
-    deleteGoogleOAuthToken(
-        $config_conn
-    );
+    $googleSub =
+        $_SESSION['google_user_sub'] ??
+        null;
+
+    if (
+        is_string($googleSub) &&
+        $googleSub !== ''
+    ) {
+        deleteGoogleOAuthToken(
+            $config_conn,
+            $googleSub
+        );
+    }
 } catch (Throwable $exception) {
     error_log(
         'Unable to remove Google OAuth credentials during logout: ' .

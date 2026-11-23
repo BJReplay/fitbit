@@ -9,11 +9,26 @@ $connected = false;
 $healthUserId = '';
 $connectionError = '';
 
+$googleSub =
+    $_SESSION['google_user_sub'] ??
+    null;
+
+$signedIn =
+    is_string($googleSub) &&
+    $googleSub !== '';
+
 try {
-    if (hasStoredGoogleOAuthToken($config_conn)) {
+    if (
+    $signedIn &&
+    hasStoredGoogleOAuthToken(
+        $config_conn,
+        $googleSub
+    )
+    ) {
         $healthUserId = googleHealthCurrentUserId(
             $config_conn,
-            $config_redirect_uri
+            $config_redirect_uri,
+            $googleSub
         );
 
         $connected = true;

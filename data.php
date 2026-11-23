@@ -39,11 +39,27 @@ $prev = $currDate
 	)
 	->format('Y-m-d');
 
+$googleSub =
+	$_SESSION['google_user_sub'] ??
+	null;
+
+if (
+	!is_string($googleSub) ||
+	$googleSub === ''
+) {
+	http_response_code(401);
+
+	exit('You are not signed in. ' .
+		'<a href="oauth-start.php">Sign in with Google</a>');
+}
+
 try {
 	$healthUserId = googleHealthCurrentUserId(
 		$config_conn,
-		$config_redirect_uri
+		$config_redirect_uri,
+		$googleSub
 	);
+
 } catch (
 	JsonException |
 	InvalidArgumentException |
@@ -160,7 +176,8 @@ try {
 			$document = loadStoredHeartRateDocument(
 				$config_conn,
 				$healthUserId,
-				$date
+				$date,
+				$googleSub
 			);
 
 			if ($document !== null) {
