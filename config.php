@@ -4,6 +4,21 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/urls.php';
 
+const APPLICATION_SESSION_LIFETIME = 60 * 60 * 24 * 30;
+
+ini_set(
+    'session.gc_maxlifetime',
+    (string) APPLICATION_SESSION_LIFETIME
+);
+
+session_set_cookie_params([
+    'lifetime' => APPLICATION_SESSION_LIFETIME,
+    'path' => '/',
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+
 session_start();
 
 $cspNonce = base64_encode(random_bytes(18));
