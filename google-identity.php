@@ -124,6 +124,54 @@ function saveGoogleAuthenticatedUser(
 }
 
 /**
+ * Links the authenticated Google account to its Google Health identity.
+ */
+function saveGoogleHealthUserId(
+    mysqli $connection,
+    string $googleSub,
+    string $healthUserId
+): void {
+    if ($googleSub === '' || $healthUserId === '') {
+        throw new InvalidArgumentException(
+            'Google and Google Health user identifiers must not be empty.'
+        );
+    }
+
+    $statement = mysqli_prepare(
+        $connection,
+        'UPDATE users
+            SET health_user_id = ?,
+                updated_at = UTC_TIMESTAMP()
+          WHERE google_sub = ?'
+    );
+
+    mysqli_stmt_bind_param(
+        $statement,
+        'ss',
+        $healthUserId,
+        $googleSub
+    );
+
+    mysqli_stmt_execute(
+        $statement
+    );
+
+    if (mysqli_stmt_affected_rows($statement) < 1) {
+        mysqli_stmt_close(
+            $statement
+        );
+
+        throw new UnexpectedValueException(
+            'Unable to link the Google Health identity to the application user.'
+        );
+    }
+
+    mysqli_stmt_close(
+        $statement
+    );
+}
+
+/**
  * Stores the validated Google identity in the application session.
  *
  * @param array{
@@ -133,7 +181,8 @@ function saveGoogleAuthenticatedUser(
  * } $identity
  */
 function setGoogleAuthenticatedSession(
-    array $identity
+    array $identity,
+    ?string $healthUserId = null
 ): void {
     $_SESSION['google_user_sub'] =
         $identity['googleSub'];
@@ -143,4 +192,9 @@ function setGoogleAuthenticatedSession(
 
     $_SESSION['google_user_name'] =
         $identity['displayName'];
+
+    if ($healthUserId !== null) {
+        $_SESSION['google_health_user_id'] =
+            $healthUserId;
+    }
 }
