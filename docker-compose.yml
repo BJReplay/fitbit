@@ -3,12 +3,10 @@ services:
     image: bjreplay/php
     container_name: phpserver
     env_file: .env.fitbit
-    links:
-      - mysql-db
     depends_on:
       - mysql-db
     volumes:
-      - app_data:/var/www/html
+      - ./bsheartrate/fitbit:/var/www/html:ro
     restart: always
     networks:
       - internal_network
@@ -21,14 +19,13 @@ services:
     restart: always
     depends_on:
       - phpserver
-    env_file: .env.fitbit
     ports:
       - 443:443
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - ./caddy-config:/config
       - caddy-data:/data
-      - app_data:/var/www/html:ro
+      - ./bsheartrate/fitbit:/var/www/html:ro
     networks:
       - external_network
       - internal_network
@@ -48,13 +45,12 @@ services:
       - default
 
 volumes:
-  app_data:
   caddy-data:
     driver: local
     driver_opts:
-       o: bind
-       device: '/home/ubuntu/mastodon/caddy-data'
-       type: local
+      o: bind
+      device: '/home/ubuntu/mastodon/caddy-data'
+      type: local
 
 networks:
   external_network:

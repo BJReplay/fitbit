@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Google\Client;
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once '/var/www/vendor/autoload.php';
 require_once __DIR__ . '/urls.php';
 
 /**
