@@ -78,6 +78,88 @@ function googleAuthenticatedIdentity(
 }
 
 /**
+ * Returns the Google subject for the currently authenticated session.
+ */
+function authenticatedGoogleSub(): string
+{
+    $googleSub =
+        $_SESSION['google_user_sub'] ??
+        null;
+
+    if (!is_string($googleSub) || trim($googleSub) === '') {
+        throw new RuntimeException(
+            'No authenticated Google user is available in this session.'
+        );
+    }
+
+    return trim($googleSub);
+}
+
+/**
+ * Returns the Google Health user ID linked to an authenticated Google
+ * account, or null when no Google Health identity has been linked yet.
+ */
+function googleHealthUserIdForGoogleSub(
+    mysqli $connection,
+    string $googleSub
+): ?string {
+    if ($googleSub === '') {
+        throw new InvalidArgumentException(
+            'The Google user identifier must not be empty.'
+        );
+    }
+
+    $statement = mysqli_prepare(
+        $connection,
+        'SELECT health_user_id
+           FROM users
+          WHERE google_sub = ?
+          LIMIT 1'
+    );
+
+    try {
+        mysqli_stmt_bind_param(
+            $statement,
+            's',
+            $googleSub
+        );
+
+        mysqli_stmt_execute(
+            $statement
+        );
+
+        $healthUserId = null;
+
+        mysqli_stmt_bind_result(
+            $statement,
+            $healthUserId
+        );
+
+        if (!mysqli_stmt_fetch($statement)) {
+            throw new UnexpectedValueException(
+                'The authenticated Google user does not exist locally.'
+            );
+        }
+    } finally {
+        mysqli_stmt_close(
+            $statement
+        );
+    }
+
+    if ($healthUserId === null) {
+        return null;
+    }
+
+    if (!is_string($healthUserId) || $healthUserId === '') {
+        throw new UnexpectedValueException(
+            'The stored Google Health user identifier is invalid.'
+        );
+    }
+
+    return $healthUserId;
+}
+
+/**
  * Creates or updates the local application profile for a Google account.
  *
  * @param array{
