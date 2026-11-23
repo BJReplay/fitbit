@@ -1,48 +1,135 @@
 <?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/urls.php';
+
+const APPLICATION_SESSION_LIFETIME = 60 * 60 * 24 * 30;
+
+ini_set(
+    'session.gc_maxlifetime',
+    (string) APPLICATION_SESSION_LIFETIME
+);
+
+session_set_cookie_params([
+    'lifetime' => APPLICATION_SESSION_LIFETIME,
+    'path' => '/',
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+
 session_start();
 
-include_once("functions.php");
+$cspNonce = base64_encode(random_bytes(18));
 
-//below  will give the whole connectionstring in a single string
-$conn = getenv("MYSQLCONNSTR_localdb");
+$csp = implode('; ', [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "form-action 'self'",
+    "script-src 'self' 'nonce-{$cspNonce}'",
+    "style-src 'self'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "manifest-src 'self'",
+    "worker-src 'none'",
+    "frame-ancestors 'none'",
+    "frame-src 'none'",
+    "upgrade-insecure-requests",
+]);
 
-//Let's split it and decorate it in an array
-$conarr2 = explode(";", $conn);
-$conarr = array();
-foreach ($conarr2 as $key => $value) {
-    $k = substr($value, 0, strpos($value, '='));
-    $conarr[$k] = substr($value, strpos($value, '=') + 1);
+// Uncomment the following line to enable reporting of CSP violations to a specified endpoint
+// $csp .= "; report-uri /csp-report-endpoint.php";
+// header("Content-Security-Policy-Report-Only: {$csp}");
+// Comment the line below to disable enforcement of the CSP if you uncomment the report-uri line above
+header("Content-Security-Policy: {$csp}");
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+include_once __DIR__ . '/functions.php';
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+// Retrieve and validate the database configuration.
+$databaseEnvironment = [];
+
+foreach (
+    [
+        'MYSQL_HOST',
+        'MYSQL_PORT',
+        'MYSQL_DATABASE',
+        'MYSQL_USER',
+        'MYSQL_PASSWORD',
+    ] as $environmentName
+) {
+    $value = getenv($environmentName);
+
+    if (!is_string($value) || trim($value) === '') {
+        error_log(
+            sprintf(
+                '%s is not configured.',
+                $environmentName
+            )
+        );
+
+        http_response_code(503);
+        exit('The service is temporarily unavailable.');
+    }
+
+    $databaseEnvironment[$environmentName] = trim($value);
 }
 
-//$host = $conarr["Server"]; 
-//$user = $conarr["User Id"]; 
-//$pass = $conarr["Password"];
-//$dbname = $conarr["Database"];
+$host = $databaseEnvironment['MYSQL_HOST'];
+$user = $databaseEnvironment['MYSQL_USER'];
+$pass = $databaseEnvironment['MYSQL_PASSWORD'];
+$dbname = $databaseEnvironment['MYSQL_DATABASE'];
 
-$host = $conarr["Data Source"];
-$user = $conarr["User Id"];
-$pass = $conarr["Password"];
-$dbname = $conarr["Database"];
+$portValue = $databaseEnvironment['MYSQL_PORT'];
 
-// Other Configuration Parameters
+if (
+    filter_var(
+        $portValue,
+        FILTER_VALIDATE_INT,
+        [
+            'options' => [
+                'min_range' => 1,
+                'max_range' => 65535,
+            ],
+        ]
+    ) === false
+) {
+    error_log('MYSQL_PORT is not a valid TCP port.');
+    http_response_code(503);
+    exit('The service is temporarily unavailable.');
+}
 
-// Replace the Redirect URL with your setup
-$config_base_host = getenv("WEBSITE_HOSTNAME");
-$config_redirect_uri = "https://" . $config_base_host . "/token.php";
+$port = (int) $portValue;
 
-$config_oauth_url = "https://www.fitbit.com/oauth2/authorize";
-$config_scope = "heartrate profile"; // only getting heartrate and profile data
-$config_expires_sec = 30 * 24 * 60 * 60; // 30 Days
-$config_api_url = "https://api.fitbit.com/1/user/-/activities/heart/date"; // please see getdata.php /$date/1d/1sec/time/00:00/23:59.json";
+$config_base_host = getenv('WEBSITE_HOSTNAME');
+if (!is_string($config_base_host) || trim($config_base_host) === '') {
+    error_log('WEBSITE_HOSTNAME is not configured.');
+    http_response_code(503);
+    exit('The service is temporarily unavailable.');
+}
 
-// Connecting to Database
-//$config_conn = mysqli_init();
-//$config_conn->options(MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, true);
-//$config_conn->ssl_set(NULL, NULL, "/etc/ssl/certs/ca-certificates.crt", NULL, NULL);
-//$config_conn->real_connect("$host","$user","$pass","$dbname");
-//$mysqli->close();
-$config_conn = mysqli_connect("$host", "$user", "$pass", "$dbname");
+$config_redirect_uri = applicationHttpsUrl(
+    trim($config_base_host),
+    '/token.php'
+);
 
-if (!$config_conn) {
-    exit("No MySQL Connection Established.<BR><BR>" . mysqli_connect_error());
+try {
+    $config_conn = mysqli_connect(
+        $host,
+        $user,
+        $pass,
+        $dbname,
+        $port
+    );
+
+    mysqli_set_charset($config_conn, 'utf8mb4');
+} catch (mysqli_sql_exception $exception) {
+    error_log('Database connection failed: ' . $exception->getMessage());
+    http_response_code(503);
+    exit('The service is temporarily unavailable.');
 }

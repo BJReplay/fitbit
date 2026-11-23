@@ -1,71 +1,168 @@
 <?php
-include_once("config.php");
 
-// Get date or set default for today
-$date = date("Y-m-d");
-if (isset($_GET['date'])) {
-	$date = $_GET['date'];
+declare(strict_types=1);
+
+include_once 'config.php';
+require_once __DIR__ . '/google-health.php';
+require_once __DIR__ . '/stored-heart-rate.php';
+
+$date =
+    $_GET['date'] ??
+    date('Y-m-d');
+
+if (
+    !is_string($date) ||
+    !validateDate($date . ' 00:00:00')
+) {
+    exit('Date is not valid. ' .
+        'Please use YYYY-MM-DD format.');
 }
 
-// VALIDATION
-// Step 1 - Date Validation
-if (!validateDate("$date 00:00:00")) {
-	exit("Date is not valid. Please use YYYY-MM-DD format.");
+$googleSub =
+    $_SESSION['google_user_sub'] ??
+    null;
+
+if (
+    !is_string($googleSub) ||
+    $googleSub === ''
+) {
+    http_response_code(401);
+
+    exit('You are not signed in. ' .
+        '<a href="oauth-start.php">Sign in with Google</a>');
 }
 
-// Step 2 - Do not proceed if Client ID is not set
-if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
-	exit("Client ID not available. Please <a href='index.php'>try again</a>");
-} else {
-	$fb_client_id = $_SESSION['fb_client_id'];
+try {
+    $healthUserId = googleHealthCurrentUserId(
+        $config_conn,
+        $config_redirect_uri,
+        $googleSub
+    );
+} catch (
+    JsonException |
+    InvalidArgumentException |
+    RuntimeException |
+    UnexpectedValueException |
+    mysqli_sql_exception $exception
+) {
+    error_log(
+        'Unable to resolve Google Health identity for export: ' .
+            $exception->getMessage()
+    );
+
+    http_response_code(401);
+
+    exit('Google Health is not connected. ' .
+        '<a href="oauth-start.php">Connect Google Health</a>');
 }
 
-// filename for download
-$filename = "Fitbit-Intraday-Heartrate-$fb_client_id-$date.xls";
+$safeUserId = preg_replace(
+    '/[^A-Za-z0-9._-]/',
+    '_',
+    $healthUserId
+);
 
-header("Content-Disposition: attachment; filename=\"$filename\"");
-header("Content-Type: application/vnd.ms-excel");
+if (
+    !is_string($safeUserId) ||
+    $safeUserId === ''
+) {
+    $safeUserId =
+        'google-health-user';
+}
 
-// Query the data
-$q = "select id, fbjsondata from `data_raw` where fbdate='$date' and fbuser='$fb_client_id'";
-$result = mysqli_query($config_conn, $q);
+$filename =
+    'Google-Health-Intraday-Heartrate-' .
+    $safeUserId .
+    '-' .
+    $date .
+    '.xls';
 
-$seriesarr = array();
-$series = array('activities-heart-intraday' => array('dataset' => array()));
-if (mysqli_num_rows($result) > 0) {
+header(
+    'Content-Disposition: attachment; filename="' .
+        $filename .
+        '"'
+);
 
-	$series_raw = mysqli_fetch_row($result);
-	$series = objectToArray(json_decode($series_raw[1]));
+header(
+    'Content-Type: application/vnd.ms-excel'
+);
 
-	foreach ($series['activities-heart-intraday']['dataset'] as $key => $value) {
-		$time = $value['time'];
-		$hb = $value['value'];
+$dataset = [];
 
-		$timearr = explode(":", $time);
-		$datearr = explode("-", $date);
-		$seriesarr[] = "[Date.UTC($datearr[0],$datearr[1]-1,$datearr[2],$timearr[0],$timearr[1],$timearr[2]), $hb]";
-	}
+try {
+    $document = loadStoredHeartRateDocument(
+        $config_conn,
+        $healthUserId,
+        $date
+    );
+
+    if ($document !== null) {
+        $dataset = storedHeartRateDataset(
+            $document
+        );
+    }
+} catch (
+    JsonException |
+    UnexpectedValueException |
+    mysqli_sql_exception $exception
+) {
+    error_log(
+        sprintf(
+            'Unable to export Google Health data for %s: %s',
+            $date,
+            $exception->getMessage()
+        )
+    );
+
+    $dataset = [];
 }
 
 ?>
+<table class="table table-bordered" id="hrdata">
+    <thead>
+        <tr>
+            <th>Date &amp; Time</th>
+            <th>Heart Rate</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
 
-<table class="table table-bordered" id='hrdata'>
-	<thead>
-		<th>Date &amp; Time</th>
-		<th>Heart Rate</th>
-	</thead>
+        if ($dataset === []) {
+            echo '<tr><td colspan="2">No data available</td></tr>' .
+                "\n";
+        }
 
+        foreach ($dataset as $value) {
+            $time = htmlspecialchars(
+                (string) ($value['time'] ?? ''),
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            );
 
-	<?php
+            $heartRate = htmlspecialchars(
+                (string) ($value['value'] ?? ''),
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            );
 
-	if (mysqli_num_rows($result) == '0') {
-		echo "<tr><td colspan=2 style='height:200px;'>No data available</td></tr>\n";
-	}
+            $safeDate = htmlspecialchars(
+                $date,
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            );
 
-	foreach ($series['activities-heart-intraday']['dataset'] as $key => $value) {
-		echo "<tr><td>$date $value[time]</td><td>$value[value]</td></tr>\n";
-	}
+            echo
+            '<tr><td>' .
+                $safeDate .
+                ' ' .
+                $time .
+                '</td><td>' .
+                $heartRate .
+                '</td></tr>' .
+                "\n";
+        }
 
-	?>
-
+        ?>
+    </tbody>
 </table>
