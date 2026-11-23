@@ -34,6 +34,19 @@ services:
       - internal_network
       - default
 
+  mysql-db:
+    image: mysql:latest
+    container_name: mysql-db
+    restart: always
+    env_file: .env.fitbit
+    ports:
+      - 3306:3306
+    volumes:
+      - ./bsheartrate/data:/var/lib/mysql
+    networks:
+      - internal_network
+      - default
+
 volumes:
   app_data:
   caddy-data:
