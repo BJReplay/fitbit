@@ -317,9 +317,6 @@ function googleHealthIdentity(
 /**
  * Returns the healthUserId for the currently authorised Google Health
  * account.
- *
- * The value is cached in the PHP session after it has been verified
- * through the Google Health identity endpoint.
  */
 function googleHealthCurrentUserId(
     mysqli $connection,
