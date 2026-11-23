@@ -809,6 +809,7 @@ function googleHealthHeartRateZoneName(
  *
  * @return list<array{
  *     name: string,
+ *     minutes: int,
  *     min: int,
  *     max: int
  * }>
@@ -1097,7 +1098,7 @@ function googleHealthDailyZoneMinutes(
  * consumed by data.php and download.php.
  *
  * @param list<array{time: string, value: int}> $dataset
- * @param list<array{name: string, min: int, max: int}> $heartRateZones
+ * @param list<array{name: string, minutes: int, min: int, max: int}> $heartRateZones
  * @return array<string, mixed>
  */
 function googleHealthLegacyHeartRateDocument(

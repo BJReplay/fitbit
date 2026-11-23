@@ -48,7 +48,7 @@ function createGoogleOAuthClient(string $redirectUri): Client
     $client = new Client();
 
     $client->setApplicationName(
-        'Fitbit Heart Rate Intraday Data'
+        'Google Health Heart Rate Intraday Data'
     );
 
     $client->setClientId(

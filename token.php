@@ -176,10 +176,6 @@ try {
      */
     session_regenerate_id(true);
 
-    /*
-     * data.php is still Fitbit-based, but redirecting there preserves
-     * existing behaviour while we test the OAuth plumbing.
-     */
     header(
         'Location: data.php',
         true,

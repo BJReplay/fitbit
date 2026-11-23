@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 include_once 'config.php';
 require_once __DIR__ . '/google-health.php';
+require_once __DIR__ . '/stored-heart-rate.php';
 
 /*
  * Get the requested date, or use today's date.
@@ -71,7 +72,7 @@ try {
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-	<title>Fitbit Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></title>
+	<title>Google Health Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></title>
 
 	<link rel="stylesheet" href="/assets/css/bootstrap-3.3.7.min.css">
 	<link rel="stylesheet" href="/assets/css/bootstrap-datepicker-1.10.1.min.css">
@@ -100,7 +101,7 @@ try {
 	<nav class="navbar navbar-inverse navbar-fixed-top">
 		<div class="container">
 			<div class="navbar-header">
-				<a class="navbar-brand" href="./"><strong>Fitbit Heart Rate Intraday Data</strong></a>
+				<a class="navbar-brand" href="./"><strong>Google Health Heart Rate Intraday Data</strong></a>
 			</div>
 		</div>
 	</nav>
@@ -156,28 +157,21 @@ try {
 		$rhr = "Unknown";
 
 		try {
-			$statement = mysqli_prepare($config_conn, 'SELECT fbjsondata FROM data_raw WHERE fbdate = ? AND fbuser = ? LIMIT 1');
-			mysqli_stmt_bind_param($statement, 'ss', $date, $healthUserId);
-			mysqli_stmt_execute($statement);
-			$json = '';
-			mysqli_stmt_bind_result($statement, $json);
+			$document = loadStoredHeartRateDocument(
+				$config_conn,
+				$healthUserId,
+				$date
+			);
 
-			if (mysqli_stmt_fetch($statement)) {
-				if ($json === '') {
-					throw new UnexpectedValueException('Stored Fitbit JSON is empty.');
-				}
-				$series = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-				if (!is_array($series)) {
-					throw new UnexpectedValueException('Stored Fitbit JSON is not an object.');
-				}
-				$dataset = $series['activities-heart-intraday']['dataset'] ?? array();
-				$hbsummary = $series['activities-heart'][0]['value'] ?? array();
-				if (!is_array($dataset)) {
-					throw new UnexpectedValueException('The intraday dataset is not an array.');
-				}
-				if (!is_array($hbsummary)) {
-					$hbsummary = array();
-				}
+			if ($document !== null) {
+				$dataset = storedHeartRateDataset(
+					$document
+			);
+
+				$hbsummary = storedHeartRateSummary(
+					$document
+				);
+
 				$heartRateZones = $hbsummary['heartRateZones'] ?? array();
 				if (!is_array($heartRateZones)) {
 					$heartRateZones = array();
@@ -186,9 +180,8 @@ try {
 					$rhr = (string) $hbsummary['restingHeartRate'];
 				}
 			}
-			mysqli_stmt_close($statement);
 		} catch (JsonException | UnexpectedValueException | mysqli_sql_exception $exception) {
-			error_log(sprintf('Unable to load Fitbit data for %s: %s', $date, $exception->getMessage()));
+			error_log(sprintf('Unable to load heart-rate data for %s: %s', $date, $exception->getMessage()));
 			$dataset = array();
 			$heartRateZones = array();
 		}
@@ -215,7 +208,7 @@ try {
 			Highcharts.chart('charts', {
 
 				title: {
-					text: 'Fitbit Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>'
+					text: 'Google Health Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>'
 				},
 
 				chart: {

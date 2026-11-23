@@ -1,6 +1,6 @@
 {
     "name": "bjreplay/fitbit",
-    "description": "Fitbit Heart Rate Intraday Data",
+    "description": "Google Health Heart Rate Intraday Data",
     "license": "Apache-2.0",
     "require": {
         "php": "^8.6",

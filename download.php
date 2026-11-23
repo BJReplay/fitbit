@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 include_once 'config.php';
 require_once __DIR__ . '/google-health.php';
+require_once __DIR__ . '/stored-heart-rate.php';
 
 $date =
     $_GET['date'] ??
@@ -74,67 +75,17 @@ header(
 $dataset = [];
 
 try {
-    $statement = mysqli_prepare(
+    $document = loadStoredHeartRateDocument(
         $config_conn,
-        'SELECT fbjsondata
-           FROM data_raw
-          WHERE fbdate = ?
-            AND fbuser = ?
-          LIMIT 1'
+        $healthUserId,
+        $date
     );
 
-    mysqli_stmt_bind_param(
-        $statement,
-        'ss',
-        $date,
-        $healthUserId
-    );
-
-    mysqli_stmt_execute(
-        $statement
-    );
-
-    $json = '';
-
-    mysqli_stmt_bind_result(
-        $statement,
-        $json
-    );
-
-    if (mysqli_stmt_fetch($statement)) {
-        if ($json === '') {
-            throw new UnexpectedValueException(
-                'Stored heart-rate JSON is empty.'
-            );
-        }
-
-        $series = json_decode(
-            $json,
-            true,
-            512,
-            JSON_THROW_ON_ERROR
+    if ($document !== null) {
+        $dataset = storedHeartRateDataset(
+            $document
         );
-
-        if (!is_array($series)) {
-            throw new UnexpectedValueException(
-                'Stored heart-rate JSON is not an object.'
-            );
-        }
-
-        $dataset =
-            $series['activities-heart-intraday']['dataset'] ??
-            [];
-
-        if (!is_array($dataset)) {
-            throw new UnexpectedValueException(
-                'The intraday dataset is not an array.'
-            );
-        }
     }
-
-    mysqli_stmt_close(
-        $statement
-    );
 } catch (
     JsonException |
     UnexpectedValueException |
@@ -168,10 +119,6 @@ try {
         }
 
         foreach ($dataset as $value) {
-            if (!is_array($value)) {
-                continue;
-            }
-
             $time = htmlspecialchars(
                 (string) ($value['time'] ?? ''),
                 ENT_QUOTES | ENT_SUBSTITUTE,

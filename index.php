@@ -40,6 +40,14 @@ $safeConnectionError = htmlspecialchars(
     'UTF-8'
 );
 
+$logoutToken =
+    bin2hex(
+        random_bytes(32)
+    );
+
+$_SESSION['google_logout_token'] =
+    $logoutToken;
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -129,6 +137,26 @@ $safeConnectionError = htmlspecialchars(
                             </a>
                         </p>
 
+                        <form
+                            action="logout.php"
+                            method="post">
+
+                            <input
+                                type="hidden"
+                                name="token"
+                                value="<?php echo htmlspecialchars(
+                                            $logoutToken,
+                                            ENT_QUOTES | ENT_SUBSTITUTE,
+                                            'UTF-8'
+                                        ); ?>">
+
+                            <button
+                                class="btn btn-default"
+                                type="submit">
+                                Log Out
+                            </button>
+
+                        </form>
                     <?php } else { ?>
 
                         <h4>
