@@ -20,7 +20,7 @@ $signedIn =
 try {
     if (
     $signedIn &&
-    hasStoredGoogleOAuthToken(
+        hasStoredGoogleOAuthToken(
         $config_conn,
         $googleSub
     )
