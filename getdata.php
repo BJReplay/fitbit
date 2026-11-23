@@ -61,42 +61,19 @@ try {
     $_SESSION['google_health_user_id'] =
         $healthUserId;
 
-    mysqli_begin_transaction(
-        $config_conn
-    );
-
-    $delete = mysqli_prepare(
-        $config_conn,
-        'DELETE FROM data_raw
-          WHERE fbuser = ?
-            AND fbdate = ?'
-    );
-
-    mysqli_stmt_bind_param(
-        $delete,
-        'ss',
-        $healthUserId,
-        $date
-    );
-
-    mysqli_stmt_execute(
-        $delete
-    );
-
-    mysqli_stmt_close(
-        $delete
-    );
-
-    $insert = mysqli_prepare(
+    $statement = mysqli_prepare(
         $config_conn,
         'INSERT INTO data_raw
-            (fbuser, fbdate, fbjsondata)
+            (fbuser, fbdate, fbjsondata, dateadded)
          VALUES
-            (?, ?, ?)'
+            (?, ?, ?, UTC_TIMESTAMP())
+         ON DUPLICATE KEY UPDATE
+            fbjsondata = VALUES(fbjsondata),
+            dateadded = UTC_TIMESTAMP()'
     );
 
     mysqli_stmt_bind_param(
-        $insert,
+        $statement,
         'sss',
         $healthUserId,
         $date,
@@ -104,15 +81,11 @@ try {
     );
 
     mysqli_stmt_execute(
-        $insert
+        $statement
     );
 
     mysqli_stmt_close(
-        $insert
-    );
-
-    mysqli_commit(
-        $config_conn
+        $statement
     );
 } catch (
     JsonException |
@@ -121,14 +94,6 @@ try {
     UnexpectedValueException |
     mysqli_sql_exception $exception
 ) {
-    try {
-        mysqli_rollback(
-            $config_conn
-        );
-    } catch (mysqli_sql_exception) {
-        // There may be no active transaction.
-    }
-
     error_log(
         sprintf(
             'Unable to retrieve/store Google Health data for %s: %s',
