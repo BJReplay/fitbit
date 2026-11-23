@@ -1,10 +1,12 @@
 CREATE TABLE `oauth_credentials` (
-    `id` tinyint unsigned NOT NULL,
+    `google_sub` varchar(255) NOT NULL,
     `encrypted_token` mediumtext NOT NULL,
-    `updated_at` datetime NOT NULL,
-    PRIMARY KEY (`id`),
-    CONSTRAINT `oauth_credentials_single_row`
-        CHECK (`id` = 1)
+    `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`google_sub`),
+    CONSTRAINT `oauth_credentials_user`
+        FOREIGN KEY (`google_sub`)
+        REFERENCES `users` (`google_sub`)
+        ON DELETE CASCADE
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
-  COMMENT='Encrypted Google OAuth credentials';
+  COMMENT='Encrypted per-user Google OAuth credentials';
