@@ -5,6 +5,7 @@ declare(strict_types=1);
 include_once 'config.php';
 require_once __DIR__ . '/google-oauth.php';
 require_once __DIR__ . '/google-identity.php';
+require_once __DIR__ . '/google-health.php';
 
 /**
  * Fails an invalid OAuth callback without exposing OAuth credentials
@@ -169,19 +170,33 @@ try {
         $identity
     );
 
+    $client->setAccessToken(
+        $token
+    );
+
+    $healthIdentity = googleHealthIdentity(
+        $client
+    );
+
+    $healthUserId =
+        $healthIdentity['healthUserId'];
+
+    saveGoogleHealthUserId(
+        $config_conn,
+        $identity['googleSub'],
+        $healthUserId
+    );
+
     saveGoogleOAuthToken(
         $config_conn,
         $token
     );
 
-    unset(
-        $_SESSION['google_health_user_id']
-    );
-
     session_regenerate_id(true);
 
     setGoogleAuthenticatedSession(
-        $identity
+        $identity,
+        $healthUserId
     );
 
     header(
