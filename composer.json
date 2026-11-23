@@ -1,0 +1,12 @@
+{
+    "name": "bjreplay/fitbit",
+    "description": "Google Health Heart Rate Intraday Data",
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^8.6",
+        "google/apiclient": "^2.20"
+    },
+    "config": {
+        "process-timeout": 900
+    }
+}

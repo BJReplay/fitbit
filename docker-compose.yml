@@ -1,0 +1,65 @@
+services:
+  phpserver:
+    image: bjreplay/php
+    container_name: phpserver
+    env_file: .env.fitbit
+    depends_on:
+      - mysql-db
+    volumes:
+      - ./bsheartrate/fitbit:/var/www/html:ro
+    restart: always
+    networks:
+      - internal_network
+      - default
+
+  caddy:
+    image: bjreplay/caddy-crowdsec-cf-dns:latest
+    container_name: caddy
+    env_file: .env.fitbit
+    restart: always
+    depends_on:
+      - phpserver
+    ports:
+      - 443:443
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy-config:/config
+      - caddy-data:/data
+      - ./bsheartrate/fitbit:/var/www/html:ro
+    networks:
+      - external_network
+      - internal_network
+      - default
+
+  mysql-db:
+    image: mysql:latest
+    container_name: mysql-db
+    restart: always
+    env_file: .env.fitbit
+    ports:
+      - 3306:3306
+    volumes:
+      - ./bsheartrate/data:/var/lib/mysql
+    networks:
+      - internal_network
+      - default
+
+volumes:
+  caddy-data:
+    driver: local
+    driver_opts:
+      o: bind
+      device: '/home/ubuntu/mastodon/caddy-data'
+      type: local
+
+networks:
+  external_network:
+  internal_network:
+    internal: true
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/24
+          gateway: 10.0.0.1

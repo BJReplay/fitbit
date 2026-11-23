@@ -1,59 +1,82 @@
 <?php
-include_once("config.php");
 
-// Get Date or set current date
-$date = date("Y-m-d");
-if (isset($_GET['date'])) {
-	$date = $_GET['date'];
-}
+declare(strict_types=1);
+
+include_once 'config.php';
+require_once __DIR__ . '/google-health.php';
+require_once __DIR__ . '/stored-heart-rate.php';
+
+/*
+ * Get the requested date, or use today's date.
+ */
+$date = $_GET['date'] ?? date('Y-m-d');
 
 if (isset($_GET['next'])) {
 	$date = $_GET['next'];
 }
 
-// Get session vars from cookies if possible
-if (isset($_COOKIE['fb_client_id']) && $_COOKIE['fb_client_id'] != '') {
-	$fb_client_id = $_COOKIE['fb_client_id'];
-	$_SESSION['fb_client_id'] = $fb_client_id;
+if (
+	!is_string($date) ||
+	!validateDate($date . ' 00:00:00')
+) {
+	exit('Date is not valid. ' .
+		'Please use YYYY-MM-DD format.');
 }
 
-if (isset($_COOKIE['fb_access_token']) && $_COOKIE['fb_access_token'] != '') {
-	$fb_access_token = base64_decode($_COOKIE['fb_access_token'], true);
-	if ($fb_access_token !== false && $fb_access_token !== '') {
-		$_SESSION['fb_access_token'] = $fb_access_token;
-	} else {
-		unset($_SESSION['fb_access_token']);
-	}
+$currDate = new DateTimeImmutable(
+	$date
+);
+
+$next = $currDate
+	->add(
+		new DateInterval('P1D')
+	)
+	->format('Y-m-d');
+
+$prev = $currDate
+	->sub(
+		new DateInterval('P1D')
+	)
+	->format('Y-m-d');
+
+$googleSub =
+	$_SESSION['google_user_sub'] ??
+	null;
+
+if (
+	!is_string($googleSub) ||
+	$googleSub === ''
+) {
+	http_response_code(401);
+
+	exit('You are not signed in. ' .
+		'<a href="oauth-start.php">Sign in with Google</a>');
 }
 
-// VALIDATION
-// Step 1 - Date Validation
-if (!validateDate("$date 00:00:00")) {
-	exit("Date is not valid. Please use YYYY-MM-DD format.");
-} else {
-	$curr_date = new DateTime($date);
-	$next_date = new DateTime($date);
-	$prev_date = new DateTime($date);
-	$next_date->add(new DateInterval('P1D'));
-	$prev_date->sub(new DateInterval('P1D'));
-	$next = $next_date->format("Y-m-d");
-	$prev = $prev_date->format("Y-m-d");
+try {
+	$healthUserId = googleHealthCurrentUserId(
+		$config_conn,
+		$config_redirect_uri,
+		$googleSub
+	);
+
+} catch (
+	JsonException |
+	InvalidArgumentException |
+	RuntimeException |
+	UnexpectedValueException |
+	mysqli_sql_exception $exception
+) {
+	error_log(
+		'Unable to resolve Google Health identity: ' .
+			$exception->getMessage()
+	);
+
+	http_response_code(401);
+
+	exit('Google Health is not connected. ' .
+		'<a href="oauth-start.php">Connect Google Health</a>');
 }
-
-if (isset($_GET['fb_client_id']) && trim($_GET['fb_client_id']) != "") {
-
-	// Register Client ID in the Session
-	$fb_client_id = safe(trim($_GET['fb_client_id']));
-	$_SESSION['fb_client_id'] = $fb_client_id;
-}
-
-// Step 2 - Do not proceed if Client ID is not set or available
-if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
-	exit("Client ID not available. Please <a href='index.php'>try again</a>");
-} else {
-	$fb_client_id = $_SESSION['fb_client_id'];
-}
-
 
 // GET DATA & SHOW THE CHART
 ?>
@@ -65,7 +88,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-	<title>Fitbit Heart Rate Data for <?php echo $fb_client_id; ?></title>
+	<title>Google Health Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></title>
 
 	<link rel="stylesheet" href="/assets/css/bootstrap-3.3.7.min.css">
 	<link rel="stylesheet" href="/assets/css/bootstrap-datepicker-1.10.1.min.css">
@@ -94,7 +117,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 	<nav class="navbar navbar-inverse navbar-fixed-top">
 		<div class="container">
 			<div class="navbar-header">
-				<a class="navbar-brand" href="./"><strong>Fitbit Heart Rate Intraday Data</strong></a>
+				<a class="navbar-brand" href="./"><strong>Google Health Heart Rate Intraday Data</strong></a>
 			</div>
 		</div>
 	</nav>
@@ -150,28 +173,21 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 		$rhr = "Unknown";
 
 		try {
-			$statement = mysqli_prepare($config_conn, 'SELECT fbjsondata FROM data_raw WHERE fbdate = ? AND fbuser = ? LIMIT 1');
-			mysqli_stmt_bind_param($statement, 'ss', $date, $fb_client_id);
-			mysqli_stmt_execute($statement);
-			$json = '';
-			mysqli_stmt_bind_result($statement, $json);
+			$document = loadStoredHeartRateDocument(
+				$config_conn,
+				$healthUserId,
+				$date,
+			);
 
-			if (mysqli_stmt_fetch($statement)) {
-				 if ($json === '') {
-        			throw new UnexpectedValueException('Stored Fitbit JSON is empty.');
-    			}
-				$series = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-				if (!is_array($series)) {
-					throw new UnexpectedValueException('Stored Fitbit JSON is not an object.');
-				}
-				$dataset = $series['activities-heart-intraday']['dataset'] ?? array();
-				$hbsummary = $series['activities-heart'][0]['value'] ?? array();
-				if (!is_array($dataset)) {
-					throw new UnexpectedValueException('The intraday dataset is not an array.');
-				}
-				if (!is_array($hbsummary)) {
-					$hbsummary = array();
-				}
+			if ($document !== null) {
+				$dataset = storedHeartRateDataset(
+					$document
+			);
+
+				$hbsummary = storedHeartRateSummary(
+					$document
+				);
+
 				$heartRateZones = $hbsummary['heartRateZones'] ?? array();
 				if (!is_array($heartRateZones)) {
 					$heartRateZones = array();
@@ -180,9 +196,8 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 					$rhr = (string) $hbsummary['restingHeartRate'];
 				}
 			}
-			mysqli_stmt_close($statement);
 		} catch (JsonException | UnexpectedValueException | mysqli_sql_exception $exception) {
-			error_log(sprintf('Unable to load Fitbit data for %s: %s', $date, $exception->getMessage()));
+			error_log(sprintf('Unable to load heart-rate data for %s: %s', $date, $exception->getMessage()));
 			$dataset = array();
 			$heartRateZones = array();
 		}
@@ -209,7 +224,7 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 			Highcharts.chart('charts', {
 
 				title: {
-					text: 'Fitbit Heart Rate Data for <?php echo $fb_client_id; ?>'
+					text: 'Google Health Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>'
 				},
 
 				chart: {
@@ -294,7 +309,6 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 					<thead>
 						<th>Name</th>
 						<th>Minutes Spent</th>
-						<th>Calories</th>
 						<th>HB Range</th>
 					</thead>
 
@@ -306,10 +320,9 @@ if (!isset($_SESSION['fb_client_id']) || $_SESSION['fb_client_id'] == '') {
 						}
 						$class = $colors[$i % count($colors)];
 						$name = htmlspecialchars((string) ($zone['name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						$minutes = htmlspecialchars((string) ($zone['minutes'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						$calories = htmlspecialchars((string) ($zone['caloriesOut'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+						$minutes = htmlspecialchars((string) ($zone['minutes'] ?? 'N/A'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 						$range = htmlspecialchars((string) ($zone['min'] ?? '') . '-' . (string) ($zone['max'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						echo "<tr class='$class'><td>$name</td><td>$minutes</td><td>$calories</td><td>$range</td></tr>\n";
+						echo "<tr class='$class'><td>$name</td><td>$minutes</td><td>$range</td></tr>\n";
 					}
 					?>
 				</table>

@@ -1,36 +1,99 @@
 <?php
 
-include_once("config.php");
+declare(strict_types=1);
 
-// Step 1 - Fitbit provides data in "#" which PHP cannot easily interpret
-// So doing some Javascript magic and redirecting it in a way that PHP can interpret it
-if (!isset($_GET['hash'])) {
+include_once 'config.php';
+require_once __DIR__ . '/google-oauth.php';
+require_once __DIR__ . '/google-identity.php';
+require_once __DIR__ . '/google-health.php';
 
-?>
-	<html>
-
-	<body>
-
-		<script nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
-			var hashdata = window.location.hash;
-			var data = hashdata.substr(1);
-			// location.href = 'token.php?hash=true&' + data;
-			window.location.replace('token.php?hash=true&' + data);
-		</script>
-
-	</body>
-
-	</html>
-
-<?php
-} else {
-
-	// Step 2 - Now the data is in query string. Initialize Session and process it
-	$access_token = $_GET['access_token'];
-	setcookie("fb_access_token", base64_encode($access_token), time() + $config_expires_sec, "/", $config_base_host, true, true);
-	//	session_start();
-	$_SESSION['fb_access_token'] = $access_token;
-	header("Location: data.php"); // redirect to data review page
-	exit;
+function googleOAuthCallbackFailure(string $logMessage): never
+{
+    unset($_SESSION['google_oauth_state'], $_SESSION['google_oauth_code_verifier']);
+    error_log($logMessage);
+    http_response_code(400);
+    exit('Google Health authorisation failed. Please return to the home page and try again.');
 }
-?>
+
+$error = $_GET['error'] ?? null;
+if (is_string($error) && $error !== '') {
+    googleOAuthCallbackFailure('Google OAuth returned error: ' . $error);
+}
+
+$state = $_GET['state'] ?? null;
+$expectedState = $_SESSION['google_oauth_state'] ?? null;
+if (!is_string($state) || !is_string($expectedState) || $state === '' || $expectedState === '' || !hash_equals($expectedState, $state)) {
+    googleOAuthCallbackFailure('Google OAuth state validation failed.');
+}
+
+$codeVerifier = $_SESSION['google_oauth_code_verifier'] ?? null;
+if (!is_string($codeVerifier) || $codeVerifier === '') {
+    googleOAuthCallbackFailure('Google OAuth PKCE verifier is unavailable.');
+}
+
+$code = $_GET['code'] ?? null;
+if (!is_string($code) || $code === '') {
+    googleOAuthCallbackFailure('Google OAuth did not return an authorisation code.');
+}
+
+unset($_SESSION['google_oauth_state'], $_SESSION['google_oauth_code_verifier']);
+
+try {
+    $client = createGoogleOAuthClient($config_redirect_uri);
+    $token = $client->fetchAccessTokenWithAuthCode($code, $codeVerifier);
+    $tokenError = $token['error'] ?? null;
+    if (is_string($tokenError) && $tokenError !== '') {
+        $description = $token['error_description'] ?? $tokenError;
+        throw new RuntimeException('Google OAuth token exchange failed: ' . (string) $description);
+    }
+
+    $accessToken = $token['access_token'] ?? null;
+    if (!is_string($accessToken) || $accessToken === '') {
+        throw new UnexpectedValueException('Google did not return an access token.');
+    }
+
+    $refreshToken = $token['refresh_token'] ?? null;
+    if (!is_string($refreshToken) || $refreshToken === '') {
+        throw new UnexpectedValueException('Google did not return a refresh token.');
+    }
+
+    $identity = googleAuthenticatedIdentity($client, $token);
+    saveGoogleAuthenticatedUser($config_conn, $identity);
+
+    $client->setAccessToken($token);
+    $healthIdentity = googleHealthIdentity($client);
+    $healthUserId = $healthIdentity['healthUserId'];
+
+    $expectedHealthUserId = googleHealthUserIdForGoogleSub(
+        $config_conn,
+        $identity['googleSub']
+    );
+
+    if ($expectedHealthUserId === null) {
+        saveGoogleHealthUserId(
+            $config_conn,
+            $identity['googleSub'],
+            $healthUserId
+        );
+    } elseif (!hash_equals(
+        $expectedHealthUserId,
+        $healthUserId
+    )) {
+        throw new RuntimeException(
+            'Google Health identity does not match ' .
+                'the authenticated application user.'
+        );
+    }
+
+    saveGoogleOAuthToken($config_conn, $identity['googleSub'], $token);
+
+    session_regenerate_id(true);
+    setGoogleAuthenticatedSession($identity);
+
+    header('Location: data.php', true, 303);
+    exit;
+} catch (Throwable $exception) {
+    error_log('Google OAuth callback failed: ' . $exception->getMessage());
+    http_response_code(500);
+    exit('Unable to complete Google Health authorisation.');
+}
