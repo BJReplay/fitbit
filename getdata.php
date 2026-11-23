@@ -90,6 +90,24 @@ try {
 
     mysqli_stmt_execute($statement);
     mysqli_stmt_close($statement);
+} catch (GoogleHealthIdentityMismatchException $exception) {
+    error_log(
+        sprintf(
+            'Google Health identity mismatch for %s: %s',
+            $date,
+            $exception->getMessage()
+        )
+    );
+
+    http_response_code(409);
+
+    exit(
+        'Google Health account mismatch. ' .
+        'The connected Google Health account does not match the ' .
+        'account associated with this application user. ' .
+        'No health data was retrieved or stored. ' .
+        '<a href="index.php">Return to the home page</a>.'
+    );
 } catch (
     JsonException |
     InvalidArgumentException |
