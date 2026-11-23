@@ -6,9 +6,7 @@ use Google\Client;
 
 require_once __DIR__ . '/google-identity.php';
 require_once __DIR__ . '/google-oauth.php';
-
-const GOOGLE_HEALTH_API_BASE =
-'https://health.googleapis.com/v4';
+require_once __DIR__ . '/urls.php';
 
 const GOOGLE_HEALTH_HEART_RATE_PAGE_SIZE =
 10000;

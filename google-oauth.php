@@ -5,14 +5,7 @@ declare(strict_types=1);
 use Google\Client;
 
 require_once __DIR__ . '/vendor/autoload.php';
-
-const GOOGLE_HEALTH_READ_SCOPE =
-'https://www.googleapis.com/auth/' .
-    'googlehealth.health_metrics_and_measurements.readonly';
-
-const GOOGLE_HEALTH_ACTIVITY_READ_SCOPE =
-'https://www.googleapis.com/auth/' .
-    'googlehealth.activity_and_fitness.readonly';
+require_once __DIR__ . '/urls.php';
 
 /**
  * Returns a required environment variable.
