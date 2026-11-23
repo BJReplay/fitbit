@@ -7,11 +7,11 @@ use Google\Client;
 require_once __DIR__ . '/vendor/autoload.php';
 
 const GOOGLE_HEALTH_READ_SCOPE =
-'https://www.googleapis.com/auth/' .
+'https://<scrubbed-url-domain>/auth/' .
     'googlehealth.health_metrics_and_measurements.readonly';
 
 const GOOGLE_HEALTH_ACTIVITY_READ_SCOPE =
-'https://www.googleapis.com/auth/' .
+'https://<scrubbed-url-domain>/auth/' .
     'googlehealth.activity_and_fitness.readonly';
 
 /**
@@ -229,14 +229,21 @@ function decryptGoogleOAuthToken(
 }
 
 /**
- * Stores the single installation's encrypted OAuth token.
+ * Stores one user's encrypted OAuth token.
  *
  * @param array<string, mixed> $token
  */
 function saveGoogleOAuthToken(
     mysqli $connection,
+    string $googleSub,
     array $token
 ): void {
+    if ($googleSub === '') {
+        throw new InvalidArgumentException(
+            'The Google user identifier must not be empty.'
+        );
+    }
+
     $accessToken =
         $token['access_token'] ??
         null;
@@ -257,18 +264,18 @@ function saveGoogleOAuthToken(
     $statement = mysqli_prepare(
         $connection,
         'INSERT INTO oauth_credentials
-            (id, encrypted_token, updated_at)
+            (google_sub, encrypted_token, updated_at)
          VALUES
-            (1, ?, UTC_TIMESTAMP())
+            (?, ?, UTC_TIMESTAMP())
          ON DUPLICATE KEY UPDATE
-            encrypted_token = ?,
+            encrypted_token = VALUES(encrypted_token),
             updated_at = UTC_TIMESTAMP()'
     );
 
     mysqli_stmt_bind_param(
         $statement,
         'ss',
-        $encryptedToken,
+        $googleSub,
         $encryptedToken
     );
 
@@ -282,30 +289,39 @@ function saveGoogleOAuthToken(
 }
 
 /**
- * Loads the stored OAuth token.
+ * Loads one user's stored OAuth token.
  *
- * Returns null if this installation has not yet been authorised.
+ * Returns null if that user has not yet authorised Google Health.
  *
  * @return array<string, mixed>|null
  */
 function loadGoogleOAuthToken(
-    mysqli $connection
+    mysqli $connection,
+    string $googleSub
 ): ?array {
+    if ($googleSub === '') {
+        throw new InvalidArgumentException(
+            'The Google user identifier must not be empty.'
+        );
+    }
+
     $statement = mysqli_prepare(
         $connection,
         'SELECT encrypted_token
            FROM oauth_credentials
-          WHERE id = 1'
+          WHERE google_sub = ?'
+    );
+
+    mysqli_stmt_bind_param(
+        $statement,
+        's',
+        $googleSub
     );
 
     mysqli_stmt_execute(
         $statement
     );
 
-    /*
-     * Initialise the bound value explicitly as a string.
-     * encrypted_token is NOT NULL in the database schema.
-     */
     $encryptedToken = '';
 
     mysqli_stmt_bind_result(
@@ -337,15 +353,28 @@ function loadGoogleOAuthToken(
 }
 
 /**
- * Removes this installation's locally stored OAuth credentials.
+ * Removes one user's locally stored OAuth credentials.
  */
 function deleteGoogleOAuthToken(
-    mysqli $connection
+    mysqli $connection,
+    string $googleSub
 ): void {
+    if ($googleSub === '') {
+        throw new InvalidArgumentException(
+            'The Google user identifier must not be empty.'
+        );
+    }
+
     $statement = mysqli_prepare(
         $connection,
         'DELETE FROM oauth_credentials
-          WHERE id = 1'
+          WHERE google_sub = ?'
+    );
+
+    mysqli_stmt_bind_param(
+        $statement,
+        's',
+        $googleSub
     );
 
     mysqli_stmt_execute(
@@ -358,23 +387,25 @@ function deleteGoogleOAuthToken(
 }
 
 /**
- * Returns a Google OAuth client with a valid access token.
+ * Returns a Google OAuth client with a valid access token for one user.
  *
  * If the stored access token has expired, the refresh token is used to
  * obtain a replacement access token and the updated token bundle is
- * persisted.
+ * persisted against that same Google user.
  */
 function authorisedGoogleOAuthClient(
     mysqli $connection,
-    string $redirectUri
+    string $redirectUri,
+    string $googleSub
 ): Client {
     $storedToken = loadGoogleOAuthToken(
-        $connection
+        $connection,
+        $googleSub
     );
 
     if ($storedToken === null) {
         throw new RuntimeException(
-            'Google Health has not been authorised.'
+            'Google Health has not been authorised for this user.'
         );
     }
 
@@ -455,6 +486,7 @@ function authorisedGoogleOAuthClient(
 
     saveGoogleOAuthToken(
         $connection,
+        $googleSub,
         $refreshedToken
     );
 
@@ -466,15 +498,17 @@ function authorisedGoogleOAuthClient(
 }
 
 /**
- * Returns whether this installation has stored Google OAuth credentials.
+ * Returns whether one user has stored Google OAuth credentials.
  *
  * This checks only local storage. It does not contact Google or establish
  * whether the stored credentials are still valid.
  */
 function hasStoredGoogleOAuthToken(
-    mysqli $connection
+    mysqli $connection,
+    string $googleSub
 ): bool {
     return loadGoogleOAuthToken(
-        $connection
+        $connection,
+        $googleSub
     ) !== null;
 }
