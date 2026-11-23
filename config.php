@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/urls.php';
+
 session_start();
 
 $cspNonce = base64_encode(random_bytes(18));
@@ -96,7 +98,10 @@ if (!is_string($config_base_host) || trim($config_base_host) === '') {
     exit('The service is temporarily unavailable.');
 }
 
-$config_redirect_uri = 'https://' . trim($config_base_host) . '/token.php';
+$config_redirect_uri = applicationHttpsUrl(
+    trim($config_base_host),
+    '/token.php'
+);
 
 try {
     $config_conn = mysqli_connect(
