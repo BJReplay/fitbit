@@ -21,7 +21,7 @@ The OAuth consent configuration and OAuth client are intentionally manual. Googl
 Before running the script, have:
 
 1. A Google account permitted to create a Google Cloud project, or access to an existing project that you can administer.
-2. The [Google Cloud CLI installed](https://<scrubbed-url-domain>/sdk/docs/install).
+2. The [Google Cloud CLI installed](https://cloud.google.com/sdk/docs/install).
 3. An authenticated CLI session:
 
    ```bash
@@ -110,8 +110,8 @@ Open **Google Auth Platform > Data access**, choose **Add or remove scopes**, an
 openid
 email
 profile
-https://<scrubbed-url-domain>/auth/googlehealth.health_metrics_and_measurements.readonly
-https://<scrubbed-url-domain>/auth/googlehealth.activity_and_fitness.readonly
+https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly
+https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly
 ```
 
 The two Google Health scopes match `urls.php`; the OpenID Connect scopes match `google-oauth.php`. If the Google Health scopes are not listed, confirm that **Google Health API** is enabled, then use the manual scope entry field if it is available.
@@ -124,8 +124,8 @@ Open **Google Auth Platform > Clients**, click **Create client**, and select **W
 
 Use a recognisable name such as `Google Health Heart Rate web client`, then enter the exact values printed by the script:
 
-- **Authorised JavaScript origin:** `<scrubbed-url-domain>
-- **Authorised redirect URI:** `https://<scrubbed-url-domain>/token.php%60
+- **Authorised JavaScript origin:** `https://YOUR_HOSTNAME`
+- **Authorised redirect URI:** `https://YOUR_HOSTNAME/token.php`
 
 The application performs a server-side OAuth flow. The origin is included to make the client configuration explicit and to support any future same-origin browser integration; the callback URI is the value required by the current PHP application.
 
@@ -156,7 +156,7 @@ This key encrypts stored OAuth token bundles. Back it up securely before using t
 
 ### 6. Verify the deployment configuration
 
-Set `WEBSITE_HOSTNAME` to the same hostname used above, without `<scrubbed-url-domain> or a path:
+Set `WEBSITE_HOSTNAME` to the same hostname used above, without `https://` or a path:
 
 ```text
 WEBSITE_HOSTNAME=heartrate.example.com
@@ -164,8 +164,8 @@ WEBSITE_HOSTNAME=heartrate.example.com
 
 Check that:
 
-- the application is reachable at `https://<scrubbed-url-domain>/%60;
-- `https://<scrubbed-url-domain>/token.php%60 reaches the deployed application rather than a proxy error or unrelated site;
+- the application is reachable at `https://YOUR_HOSTNAME/`;
+- `https://YOUR_HOSTNAME/token.php` reaches the deployed application rather than a proxy error or unrelated site;
 - the OAuth client contains an exact redirect-URI match, including HTTPS and `/token.php`;
 - the client ID, client secret and encryption key are present in the PHP runtime environment;
 - the database tables described in `README.md` have been created.
@@ -221,7 +221,7 @@ gcloud services list --enabled --project=PROJECT_ID
 Compare the URI in the error with the client configuration character for character. For this application it must be:
 
 ```text
-https://<scrubbed-url-domain>/token.php
+https://YOUR_HOSTNAME/token.php
 ```
 
 ### The user cannot authorise the app
@@ -234,9 +234,9 @@ Confirm that `health.googleapis.com` is enabled in the same project that owns th
 
 ## Official references
 
-- [Create and manage Google Cloud projects](https://<scrubbed-url-domain>/resource-manager/docs/creating-managing-projects)
-- [Google Health API in the API Library](https://<scrubbed-url-domain>/apis/library/health.googleapis.com)
-- [Manage OAuth app branding](https://<scrubbed-url-domain>/cloud/answer/15549049?hl=en-GB)
-- [Manage OAuth clients](https://<scrubbed-url-domain>/cloud/answer/15549257?hl=en-GB)
-- [Manage app data access and scopes](https://<scrubbed-url-domain>/cloud/answer/15549135?hl=en-GB)
-- [Submit an OAuth app for verification](https://<scrubbed-url-domain>/cloud/answer/13461325?hl=en-GB)
+- [Create and manage Google Cloud projects](https://cloud.google.com/resource-manager/docs/creating-managing-projects)
+- [Google Health API in the API Library](https://console.cloud.google.com/apis/library/health.googleapis.com)
+- [Manage OAuth app branding](https://support.google.com/cloud/answer/15549049?hl=en-GB)
+- [Manage OAuth clients](https://support.google.com/cloud/answer/15549257?hl=en-GB)
+- [Manage app data access and scopes](https://support.google.com/cloud/answer/15549135?hl=en-GB)
+- [Submit an OAuth app for verification](https://support.google.com/cloud/answer/13461325?hl=en-GB)
