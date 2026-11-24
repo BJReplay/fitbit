@@ -85,8 +85,8 @@ if [[ ! "$project_id" =~ ^[a-z][a-z0-9-]{4,28}[a-z0-9]$ ]]; then
     exit 2
 fi
 
-hostname=${hostname#<scrubbed-url-domain>}
-hostname=${hostname#<scrubbed-url-domain>}
+hostname=${hostname#https://}
+hostname=${hostname#http://}
 hostname=${hostname%/}
 
 if [[ "$hostname" == */* || "$hostname" == *:* || "$hostname" == *' '* ]]; then
@@ -136,9 +136,9 @@ fi
 
 gcloud services enable health.googleapis.com --project="$project_id"
 
-origin="<scrubbed-url-domain>}"
+origin="https://${hostname}"
 redirect_uri="${origin}/token.php"
-console_base="https://<scrubbed-url-domain>"
+console_base="https://console.cloud.google.com"
 
 cat <<EOF
 
