@@ -71,6 +71,14 @@ $_SESSION['google_disconnect_token'] = $disconnectToken;
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1">
+    <meta
+        name="theme-color"
+        content="#222222">
+
+    <link
+        rel="manifest"
+        href="/manifest.webmanifest">
+
 
     <title>Google Health Heart Rate Intraday Data</title>
 
