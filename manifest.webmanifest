@@ -3,7 +3,7 @@
   "name": "Google Health Heart Rate Intraday Data",
   "short_name": "Heart Rate",
   "description": "Review and export Google Health heart-rate data.",
-  "start_url": "https://bsheartrate.sheppo.au/data.php",
+  "start_url": "/data.php",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -11,7 +11,7 @@
   "icons": [
     {
       "src": "/assets/app-icon.svg",
-      "sizes": "any",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
