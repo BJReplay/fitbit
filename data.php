@@ -87,309 +87,110 @@ try {
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 	<title>Google Health Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></title>
-
 	<link rel="stylesheet" href="/assets/css/bootstrap-3.3.7.min.css">
 	<link rel="stylesheet" href="/assets/css/bootstrap-datepicker-1.10.1.min.css">
 	<link rel="stylesheet" href="/assets/css/highcharts-13.1.1-local.css">
 	<link rel="stylesheet" href="/assets/css/highcharts-palette-13.1.1-local.css">
 	<link rel="stylesheet" href="/assets/css/fitbit.css">
-
 	<script src="/assets/js/jquery-3.7.1.slim.min.js"></script>
-
 	<script src="/assets/js/bootstrap-3.3.7.min.js"></script>
-
 	<script src="/assets/js/highcharts-13.1.1-local.js"></script>
 	<script src="/assets/js/modules/series-label-13.1.1-local.js"></script>
 	<script src="/assets/js/modules/exporting-13.1.1-local.js"></script>
 	<script src="/assets/js/modules/export-data-13.1.1-local.js"></script>
 	<script src="/assets/js/modules/accessibility-13.1.1-local.js"></script>
-
 	<script src="/assets/js/bootstrap-datepicker-1.10.1.min.js"></script>
-
 	<link rel="icon" href="/assets/favicon32.ico" type="image/x-icon" />
 </head>
-
 <body>
-
-	<!-- Header -->
-	<nav class="navbar navbar-inverse navbar-fixed-top">
-		<div class="container">
-			<div class="navbar-header">
-				<a class="navbar-brand" href="./"><strong>Google Health Heart Rate Intraday Data</strong></a>
-			</div>
-		</div>
-	</nav>
-
+	<nav class="navbar navbar-inverse navbar-fixed-top"><div class="container"><div class="navbar-header"><a class="navbar-brand" href="./"><strong>Google Health Heart Rate Intraday Data</strong></a></div></div></nav>
 	<div class="navbar-spacer-small" aria-hidden="true"></div>
-
-	<!-- Primary data -->
 	<div class="container-fluid">
-
 		<div class="well" id="setdate">
-
-			<form action='data.php' method=get id='form'>
-
-				<div class="row">
-
-					<div class="col-md-1 pull-left text-left">
-						<a class="btn btn-success" title="Previous Day" href='data.php?date=<?php echo $prev; ?>'> &#x25c4; </a>
-					</div> <!-- /col-md-1 -->
-
-					<!-- Column for Showing Date Picker -->
-					<div class="col-md-2">
-
-						<div class="input-group date" id="datepicker">
-							<input type=text class="form-control" readonly name=date placeholder='yyyy-mm-dd' value='<?php echo $date; ?>'>
-							<div class="input-group-addon">
-								<span class="glyphicon glyphicon-th"></span>
-							</div>
-						</div>
-
-					</div><!-- /col-md-2 -->
-
-					<div class="col-md-3 pull-right text-right">
-						<a class="btn btn-success" title="Fetch and Next" href='getdata.php?date=<?php echo $date; ?>&next=<?php echo $next; ?>'>&#x21bb; &amp; &#x25ba;</a>
-						<a class="btn btn-success" title="Refresh" href='getdata.php?date=<?php echo $date; ?>'>&#x21bb;</a>
-						<a class="btn btn-success" title="Next Day" href='data.php?date=<?php echo $next; ?>'> &#x25ba; </a>
-					</div> <!-- /col-md-3 -->
-
-
-				</div> <!-- /row -->
-			</form>
-
-		</div> <!-- /well -->
-
-
-
-
+			<form action='data.php' method=get id='form'><div class="row">
+				<div class="col-md-1 pull-left text-left"><a class="btn btn-success" title="Previous Day" href='data.php?date=<?php echo $prev; ?>'> &#x25c4; </a></div>
+				<div class="col-md-2"><div class="input-group date" id="datepicker"><input type=text class="form-control" readonly name=date placeholder='yyyy-mm-dd' value='<?php echo $date; ?>'><div class="input-group-addon"><span class="glyphicon glyphicon-th"></span></div></div></div>
+				<div class="col-md-3 pull-right text-right"><a class="btn btn-success" title="Fetch and Next" href='getdata.php?date=<?php echo $date; ?>&next=<?php echo $next; ?>'>&#x21bb; &amp; &#x25ba;</a> <a class="btn btn-success" title="Refresh" href='getdata.php?date=<?php echo $date; ?>'>&#x21bb;</a> <a class="btn btn-success" title="Next Day" href='data.php?date=<?php echo $next; ?>'> &#x25ba; </a></div>
+			</div></form>
+		</div>
 		<?php
-
-		// Query the data. Get the raw data and process it
 		$seriesarr = array();
 		$dataset = array();
 		$heartRateZones = array();
 		$rhr = "Unknown";
-
 		try {
-			$document = loadStoredHeartRateDocument(
-				$config_conn,
-				$healthUserId,
-				$date,
-			);
-
+			$document = loadStoredHeartRateDocument($config_conn, $healthUserId, $date);
 			if ($document !== null) {
-				$dataset = storedHeartRateDataset(
-					$document
-			);
-
-				$hbsummary = storedHeartRateSummary(
-					$document
-				);
-
+				$dataset = storedHeartRateDataset($document);
+				$hbsummary = storedHeartRateSummary($document);
 				$heartRateZones = $hbsummary['heartRateZones'] ?? array();
-				if (!is_array($heartRateZones)) {
-					$heartRateZones = array();
-				}
-				if (isset($hbsummary['restingHeartRate'])) {
-					$rhr = (string) $hbsummary['restingHeartRate'];
-				}
+				if (!is_array($heartRateZones)) { $heartRateZones = array(); }
+				if (isset($hbsummary['restingHeartRate'])) { $rhr = (string) $hbsummary['restingHeartRate']; }
 			}
 		} catch (JsonException | UnexpectedValueException | mysqli_sql_exception $exception) {
 			error_log(sprintf('Unable to load heart-rate data for %s: %s', $date, $exception->getMessage()));
 			$dataset = array();
 			$heartRateZones = array();
 		}
-
 		$datearr = explode('-', $date);
 		foreach ($dataset as $value) {
 			$time = $value['time'] ?? null;
 			$hb = $value['value'] ?? null;
-			if (!is_string($time) || !is_numeric($hb)) {
-				continue;
-			}
+			if (!is_string($time) || !is_numeric($hb)) { continue; }
 			$timearr = explode(':', $time);
-			if (count($timearr) !== 3 || count($datearr) !== 3) {
-				continue;
-			}
+			if (count($timearr) !== 3 || count($datearr) !== 3) { continue; }
 			$seriesarr[] = sprintf('[Date.UTC(%d,%d,%d,%d,%d,%d), %d]', (int) $datearr[0], (int) $datearr[1] - 1, (int) $datearr[2], (int) $timearr[0], (int) $timearr[1], (int) $timearr[2], (int) $hb);
 		}
-		// Print the data / Show Chart
 		?>
-
 		<div id='charts'></div>
-
 		<script type="text/javascript" nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
 			Highcharts.chart('charts', {
-
-				title: {
-					text: 'Google Health Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>'
-				},
-
-				chart: {
-					styledMode: true,
-					zoomType: 'x',
-					height: (7 / 16 * 100) + '%' // 16:9 ratio
-				},
-				subtitle: {
-					text: '<?php echo $date; ?>'
-				},
-				xAxis: {
-					type: 'datetime',
-					dateTimeLabelFormats: { // don't display the dummy year
-						hour: '%I %p',
-						minute: '%I:%M %p'
-					},
-					title: {
-						text: 'Time'
-					}
-				},
-				yAxis: {
-					title: {
-						text: 'Heart Rate'
-					}
-				},
-				legend: {
-					layout: 'vertical',
-					align: 'right',
-					verticalAlign: 'middle'
-				},
-
-				plotOptions: {
-					series: {
-						pointStart: Date.UTC(1970, 1, 1, 0, 0, 0)
-					}
-				},
-
-				series: [{
-					name: 'Heart Rate',
-					showInLegend: false,
-					data: [
-						<?php
-						echo implode(",", $seriesarr);
-						?>
-					]
-				}]
-
+				title: { text: 'Google Health Heart Rate Data for <?php echo htmlspecialchars($healthUserId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>' },
+				chart: { styledMode: true, zoomType: 'x', height: (7 / 16 * 100) + '%' },
+				subtitle: { text: '<?php echo $date; ?>' },
+				xAxis: { type: 'datetime', dateTimeLabelFormats: { hour: '%I %p', minute: '%I:%M %p' }, title: { text: 'Time' } },
+				yAxis: { title: { text: 'Heart Rate' } },
+				legend: { layout: 'vertical', align: 'right', verticalAlign: 'middle' },
+				plotOptions: { series: { pointStart: Date.UTC(1970, 1, 1, 0, 0, 0) } },
+				series: [{ name: 'Heart Rate', showInLegend: false, data: [<?php echo implode(",", $seriesarr); ?>] }]
 			});
 		</script>
-		<!-- /charts -->
-
 		<hr>
-
-		<!-- Other data including detailed table and summary -->
 		<div class="row">
-
-			<!-- headers for tables shown later -->
-			<div class="col-md-3 pull-left">
-				<h4>Heart Rate Summary</h4>
-			</div>
-
-
-			<div class="col-md-3">
-				<h4>Resting Heart Rate: <?php echo $rhr; ?></h4>
-			</div>
-
-			<div class="col-md-6 pull-right">
-				<a class="btn btn-primary pull-right" href="download.php?date=<?php echo $date; ?>">Export to Excel</a>
-				<h4>Heart Rate Detailed Data</h4>
-			</div>
-			<!-- /headers -->
-
-
+			<div class="col-md-3 pull-left"><h4>Heart Rate Summary</h4></div>
+			<div class="col-md-3"><h4>Resting Heart Rate: <?php echo $rhr; ?></h4></div>
+			<div class="col-md-6 pull-right"><a class="btn btn-primary pull-right" href="download.php?date=<?php echo $date; ?>">Export to Excel</a><h4>Heart Rate Detailed Data</h4></div>
 			<div class="clear-both" aria-hidden="true"></div>
-
-
-			<!-- Table with Heart Rate Summary -->
-
-			<div class="col-md-5 pull-left">
-
-				<table class="table table-bordered table-striped">
-					<thead>
-						<th>Name</th>
-						<th>Minutes Spent</th>
-						<th>HB Range</th>
-					</thead>
-
-					<?php
-					$colors = array('active', 'success', 'warning', 'danger');
-					foreach ($heartRateZones as $i => $zone) {
-						if (!is_array($zone)) {
-							continue;
-						}
-						$class = $colors[$i % count($colors)];
-						$name = htmlspecialchars((string) ($zone['name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						$minutes = htmlspecialchars((string) ($zone['minutes'] ?? 'N/A'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						$range = htmlspecialchars((string) ($zone['min'] ?? '') . '-' . (string) ($zone['max'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						echo "<tr class='$class'><td>$name</td><td>$minutes</td><td>$range</td></tr>\n";
-					}
-					?>
-				</table>
-
-			</div> <!-- /col-md-5 summary -->
-
-
-			<!-- Table with Heart Rate Detailed Data -->
-			<div class="col-md-6 pull-right pre-scrollable">
-
-				<table class="table table-bordered" id='hrdata'>
-					<thead>
-						<th>Date &amp; Time</th>
-						<th>Heart Rate</th>
-					</thead>
-
-
-					<?php
-					if ($dataset === array()) {
-						echo '<tr><td colspan="2" class="no-data">No data available</td></tr>' . "\n";
-					}
-					foreach ($dataset as $value) {
-						if (!is_array($value)) {
-							continue;
-						}
-						$time = htmlspecialchars((string) ($value['time'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						$heartRate = htmlspecialchars((string) ($value['value'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						echo "<tr><td>$date $time</td><td>$heartRate</td></tr>\n";
-					}
-					?>
-
-				</table>
-			</div> <!-- /col-md-6 detailed -->
-
-			<div class="clear-both" aria-hidden="true"></div>
-
-			<hr>
-
-		</div> <!-- /container -->
-
+			<div class="col-md-5 pull-left"><table class="table table-bordered table-striped"><thead><th>Name</th><th>Minutes Spent</th><th>HB Range</th></thead>
+			<?php
+			$colors = array('active', 'success', 'warning', 'danger');
+			foreach ($heartRateZones as $i => $zone) {
+				if (!is_array($zone)) { continue; }
+				$class = $colors[$i % count($colors)];
+				$name = htmlspecialchars((string) ($zone['name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+				$minutes = htmlspecialchars((string) ($zone['minutes'] ?? 'N/A'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+				$range = htmlspecialchars((string) ($zone['min'] ?? '') . '-' . (string) ($zone['max'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+				echo "<tr class='$class'><td>$name</td><td>$minutes</td><td>$range</td></tr>\n";
+			}
+			?>
+			</table></div>
+			<div class="col-md-6 pull-right pre-scrollable"><table class="table table-bordered" id='hrdata'><thead><th>Date &amp; Time</th><th>Heart Rate</th></thead>
+			<?php
+			if ($dataset === array()) { echo '<tr><td colspan="2" class="no-data">No data available</td></tr>' . "\n"; }
+			foreach ($dataset as $value) {
+				if (!is_array($value)) { continue; }
+				$time = htmlspecialchars((string) ($value['time'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+				$heartRate = htmlspecialchars((string) ($value['value'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+				echo "<tr><td>$date $time</td><td>$heartRate</td></tr>\n";
+			}
+			?>
+			</table></div><div class="clear-both" aria-hidden="true"></div><hr>
+		</div>
 		<script type="text/javascript" nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
-			// Date Picker Configuration
-			$('#datepicker').datepicker({
-				autoclose: true,
-				format: "yyyy-mm-dd"
-			});
-
-			$('#datepicker').on('show', function(e) {
-				if (e.date) {
-					$(this).data('stickyDate', e.date);
-				} else {
-					$(this).data('stickyDate', null);
-				}
-			});
-
-			$('#datepicker').on('hide', function(e) {
-				var stickyDate = $(this).data('stickyDate');
-
-				if (!e.date && stickyDate) {
-					$(this).datepicker('setDate', stickyDate);
-					$(this).data('stickyDate', null);
-				}
-
-				$('#form').submit();
-			});
+			$('#datepicker').datepicker({ autoclose: true, format: "yyyy-mm-dd" });
+			$('#datepicker').on('show', function(e) { if (e.date) { $(this).data('stickyDate', e.date); } else { $(this).data('stickyDate', null); } });
+			$('#datepicker').on('hide', function(e) { var stickyDate = $(this).data('stickyDate'); if (!e.date && stickyDate) { $(this).datepicker('setDate', stickyDate); $(this).data('stickyDate', null); } $('#form').submit(); });
 		</script>
-
 </body>
-
 </html>

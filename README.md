@@ -21,6 +21,7 @@ The application was subsequently updated as the Fitbit API was replaced by Googl
 - Daily resting heart rate.
 - Heart-rate zone thresholds and minutes spent in each zone.
 - Interactive Highcharts display.
+- Installable mobile PWA with a compact, touch-friendly heart-rate view.
 - Previous-day, next-day, refresh, and Fetch and Next navigation.
 - Export of stored intraday heart-rate data to an Excel-compatible `.xls` file.
 - Persistent application sessions with separate browser logout and Google Health disconnect actions.
@@ -62,8 +63,9 @@ The OAuth callback URL is derived from `WEBSITE_HOSTNAME` and ends in `/token.ph
 For a new installation, create the application tables in this order:
 
 1. `sql/default.sql` for stored heart-rate data.
-2. `sql/users.sql` for Google-authenticated application users and their Google Health identity mapping.
-3. `sql/google-oauth.sql` for encrypted per-user OAuth credentials.
+2. `sql/sessions.sql` for persistent PHP application sessions.
+3. `sql/users.sql` for Google-authenticated application users and their Google Health identity mapping.
+4. `sql/google-oauth.sql` for encrypted per-user OAuth credentials.
 
 `sql/google-oauth.sql` references the `users` table, so `sql/users.sql` must be applied first.
 
@@ -111,6 +113,24 @@ When connected:
 - **Log out from this browser** clears the application session and browser session cookie while retaining locally stored Google Health OAuth credentials and historical data.
 
 Application sessions use a 30-day lifetime. The browser session cookie is configured Secure, HttpOnly and SameSite=Lax.
+
+## Mobile PWA
+
+`manifest.webmanifest` defines an installable standalone PWA whose start URL is `/mobiledata.php`. Launching the installed PWA therefore opens the mobile-focused heart-rate view directly, while `data.php` remains the full desktop-oriented view.
+
+The mobile view:
+
+- Keeps previous-day, next-day, date-picker and refresh controls in a compact touch-friendly navigation row.
+- Returns to `mobiledata.php` after refreshing data through `getdata.php`.
+- Uses a taller Highcharts display sized specifically for a phone screen.
+- Still allows a landscape view to allow closer inspection of detailed heart rate data.
+- Shows the daily resting heart rate and heart-rate zone summary without the detailed reading table or Excel export button.
+- Includes bottom spacing for phones with on-screen navigation controls.
+- Supports touched based zoom on the chart to zoom into areas of the heart rate trace that are of interest.
+
+Mobile presentation rules are stored in `assets/css/fitbit.css`. `mobiledata.php` appends the stylesheet modification time as a query parameter so updated mobile styles are not hidden by a stale browser or installed-PWA cache.
+
+If the PWA is already installed when `manifest.webmanifest` changes, reopening or reinstalling the application may be required before the platform uses the updated launch configuration.
 
 ## Content Security Policy
 
