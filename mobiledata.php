@@ -64,7 +64,7 @@ try {
 						<input type="text" class="form-control text-center" readonly name="date" aria-label="Date" value="<?php echo htmlspecialchars($date, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
 						<div class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></div>
 					</div>
-					<a class="btn btn-default nav-button" title="Refresh" aria-label="Refresh" href="getdata.php?date=<?php echo $date; ?>"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
+					<a class="btn btn-success nav-button" title="Refresh" aria-label="Refresh" href="getdata.php?date=<?php echo $date; ?>">&#x21bb;</a>
 					<a class="btn btn-success nav-button" title="Next Day" aria-label="Next Day" href="mobiledata.php?date=<?php echo $next; ?>">&#x25ba;</a>
 				</div>
 			</form>

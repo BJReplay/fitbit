@@ -16,18 +16,18 @@
 
 .mobile-nav {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
     justify-content: center;
 }
 
 .mobile-nav .nav-button {
-    flex: 0 0 48px;
-    font-size: 20px;
+    flex: 0 0 36px;
+    font-size: 24px;
 }
 
 .mobile-nav .date-picker {
-    flex: 0 1 60%;
+    flex: 0 1 40%;
     min-width: 0;
 }
 
