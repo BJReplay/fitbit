@@ -7,11 +7,9 @@ require_once __DIR__ . '/google-health.php';
 require_once __DIR__ . '/stored-heart-rate.php';
 
 $date = $_GET['date'] ?? date('Y-m-d');
-
 if (isset($_GET['next'])) {
 	$date = $_GET['next'];
 }
-
 if (!is_string($date) || !validateDate($date . ' 00:00:00')) {
 	exit('Date is not valid. Please use YYYY-MM-DD format.');
 }
@@ -20,12 +18,10 @@ $currDate = new DateTimeImmutable($date);
 $next = $currDate->add(new DateInterval('P1D'))->format('Y-m-d');
 $prev = $currDate->sub(new DateInterval('P1D'))->format('Y-m-d');
 $googleSub = $_SESSION['google_user_sub'] ?? null;
-
 if (!is_string($googleSub) || $googleSub === '') {
 	http_response_code(401);
 	exit('You are not signed in. <a href="oauth-start.php">Sign in with Google</a>');
 }
-
 try {
 	$healthUserId = googleHealthCurrentUserId($config_conn, $config_redirect_uri, $googleSub);
 } catch (JsonException | InvalidArgumentException | RuntimeException | UnexpectedValueException | mysqli_sql_exception $exception) {
@@ -56,11 +52,9 @@ try {
 	<script src="/assets/js/bootstrap-datepicker-1.10.1.min.js"></script>
 	<link rel="icon" href="/assets/favicon32.ico" type="image/x-icon">
 	<style nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
-		.mobile-nav { display: flex; gap: 8px; align-items: center; }
-		.mobile-nav .day-nav { flex: 0 0 48px; font-size: 20px; }
-		.mobile-nav .date-picker { flex: 1 1 auto; min-width: 0; }
-		.mobile-actions { display: flex; gap: 8px; margin-top: 8px; }
-		.mobile-actions .btn { flex: 1 1 50%; }
+		.mobile-nav { display: flex; gap: 8px; align-items: center; justify-content: center; }
+		.mobile-nav .nav-button { flex: 0 0 48px; font-size: 20px; }
+		.mobile-nav .date-picker { flex: 0 1 60%; min-width: 0; }
 		.summary-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 		.summary-heading h4 { margin-top: 0; }
 		.summary-rhr { white-space: nowrap; font-weight: bold; }
@@ -76,28 +70,19 @@ try {
 	</style>
 </head>
 <body>
-	<nav class="navbar navbar-inverse navbar-fixed-top">
-		<div class="container-fluid">
-			<div class="navbar-header">
-				<a class="navbar-brand" href="./"><strong>Heart Rate</strong></a>
-			</div>
-		</div>
-	</nav>
+	<nav class="navbar navbar-inverse navbar-fixed-top"><div class="container-fluid"><div class="navbar-header"><a class="navbar-brand" href="./"><strong>Heart Rate</strong></a></div></div></nav>
 	<div class="navbar-spacer-small" aria-hidden="true"></div>
 	<div class="container-fluid">
 		<div class="well" id="setdate">
 			<form action="data.php" method="get" id="form">
 				<div class="mobile-nav">
-					<a class="btn btn-success day-nav" title="Previous Day" aria-label="Previous Day" href="data.php?date=<?php echo $prev; ?>">&#x25c4;</a>
+					<a class="btn btn-success nav-button" title="Previous Day" aria-label="Previous Day" href="data.php?date=<?php echo $prev; ?>">&#x25c4;</a>
 					<div class="input-group date date-picker" id="datepicker">
 						<input type="text" class="form-control text-center" readonly name="date" aria-label="Date" value="<?php echo htmlspecialchars($date, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?>">
 						<div class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></div>
 					</div>
-					<a class="btn btn-success day-nav" title="Next Day" aria-label="Next Day" href="data.php?date=<?php echo $next; ?>">&#x25ba;</a>
-				</div>
-				<div class="mobile-actions">
-					<a class="btn btn-default" href="getdata.php?date=<?php echo $date; ?>"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh</a>
-					<a class="btn btn-default" href="getdata.php?date=<?php echo $date; ?>&amp;next=<?php echo $next; ?>">Refresh &amp; next <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span></a>
+					<a class="btn btn-default nav-button" title="Refresh" aria-label="Refresh" href="getdata.php?date=<?php echo $date; ?>"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
+					<a class="btn btn-success nav-button" title="Next Day" aria-label="Next Day" href="data.php?date=<?php echo $next; ?>">&#x25ba;</a>
 				</div>
 			</form>
 		</div>
@@ -125,7 +110,6 @@ try {
 			$dataset = array();
 			$heartRateZones = array();
 		}
-
 		$datearr = explode('-', $date);
 		foreach ($dataset as $value) {
 			$time = $value['time'] ?? null;
@@ -140,65 +124,45 @@ try {
 			$seriesarr[] = sprintf('[Date.UTC(%d,%d,%d,%d,%d,%d), %d]', (int) $datearr[0], (int) $datearr[1] - 1, (int) $datearr[2], (int) $timearr[0], (int) $timearr[1], (int) $timearr[2], (int) $hb);
 		}
 		?>
-
 		<div id="charts"></div>
 		<script type="text/javascript" nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
 			Highcharts.chart('charts', {
 				title: { text: 'Heart Rate' },
 				chart: { styledMode: true, zoomType: 'x', height: 320 },
 				subtitle: { text: '<?php echo $date; ?>' },
-				xAxis: {
-					type: 'datetime',
-					dateTimeLabelFormats: { hour: '%I %p', minute: '%I:%M %p' },
-					title: { text: null }
-				},
+				xAxis: { type: 'datetime', dateTimeLabelFormats: { hour: '%I %p', minute: '%I:%M %p' }, title: { text: null } },
 				yAxis: { title: { text: 'BPM' } },
 				legend: { enabled: false },
-				series: [{
-					name: 'Heart Rate',
-					showInLegend: false,
-					data: [<?php echo implode(',', $seriesarr); ?>]
-				}]
+				series: [{ name: 'Heart Rate', showInLegend: false, data: [<?php echo implode(',', $seriesarr); ?>] }]
 			});
 		</script>
-
 		<hr>
 		<section aria-labelledby="summary-heading">
-			<div class="summary-heading">
-				<h4 id="summary-heading">Heart Rate Summary</h4>
-				<div class="summary-rhr">Resting: <?php echo htmlspecialchars($rhr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> BPM</div>
-			</div>
-			<div class="table-responsive">
-				<table class="table table-bordered table-striped">
-					<thead><tr><th>Zone</th><th class="text-center">Minutes</th><th class="text-center">BPM</th></tr></thead>
-					<tbody>
-					<?php
-					$colors = array('active', 'success', 'warning', 'danger');
-					if ($heartRateZones === array()) {
-						echo '<tr><td colspan="3" class="no-data">No summary available</td></tr>' . "\n";
+			<div class="summary-heading"><h4 id="summary-heading">Heart Rate Summary</h4><div class="summary-rhr">Resting: <?php echo htmlspecialchars($rhr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?> BPM</div></div>
+			<div class="table-responsive"><table class="table table-bordered table-striped">
+				<thead><tr><th>Zone</th><th class="text-center">Minutes</th><th class="text-center">BPM</th></tr></thead><tbody>
+				<?php
+				$colors = array('active', 'success', 'warning', 'danger');
+				if ($heartRateZones === array()) {
+					echo '<tr><td colspan="3" class="no-data">No summary available</td></tr>' . "\n";
+				}
+				foreach ($heartRateZones as $i => $zone) {
+					if (!is_array($zone)) {
+						continue;
 					}
-					foreach ($heartRateZones as $i => $zone) {
-						if (!is_array($zone)) {
-							continue;
-						}
-						$class = $colors[$i % count($colors)];
-						$name = htmlspecialchars((string) ($zone['name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						$minutes = htmlspecialchars((string) ($zone['minutes'] ?? 'N/A'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						$range = htmlspecialchars((string) ($zone['min'] ?? '') . '-' . (string) ($zone['max'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-						echo "<tr class='$class'><td>$name</td><td class='text-center'>$minutes</td><td class='text-center'>$range</td></tr>\n";
-					}
-					?>
-					</tbody>
-				</table>
-			</div>
+					$class = $colors[$i % count($colors)];
+					$name = htmlspecialchars((string) ($zone['name'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+					$minutes = htmlspecialchars((string) ($zone['minutes'] ?? 'N/A'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+					$range = htmlspecialchars((string) ($zone['min'] ?? '') . '-' . (string) ($zone['max'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+					echo "<tr class='$class'><td>$name</td><td class='text-center'>$minutes</td><td class='text-center'>$range</td></tr>\n";
+				}
+				?>
+				</tbody></table></div>
 		</section>
 	</div>
-
 	<script type="text/javascript" nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
 		$('#datepicker').datepicker({ autoclose: true, format: 'yyyy-mm-dd' });
-		$('#datepicker').on('show', function(e) {
-			$(this).data('stickyDate', e.date || null);
-		});
+		$('#datepicker').on('show', function(e) { $(this).data('stickyDate', e.date || null); });
 		$('#datepicker').on('hide', function(e) {
 			var stickyDate = $(this).data('stickyDate');
 			if (!e.date && stickyDate) {
