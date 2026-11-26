@@ -7,6 +7,19 @@ require_once __DIR__ . '/google-health.php';
 
 $date = $_GET['date'] ?? null;
 
+$returnPage = $_GET['return'] ?? 'data.php';
+
+if (
+    !is_string($returnPage) ||
+    !in_array(
+        $returnPage,
+        array('data.php', 'mobiledata.php'),
+        true
+    )
+) {
+    $returnPage = 'data.php';
+}
+
 if (
     !is_string($date) ||
     !validateDate($date . ' 00:00:00')
@@ -147,7 +160,9 @@ try {
 mysqli_close($config_conn);
 
 header(
-    'Location: data.php?date=' .
+    'Location: ' .
+        $returnPage . 
+        '?date=' .
         rawurlencode($next) .
         '&rand=' .
         random_int(0, PHP_INT_MAX)
