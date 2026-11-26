@@ -253,6 +253,62 @@ final class MySqlSessionHandler implements SessionHandlerInterface
         }
     }
 
+    /**
+     * Creates a cryptographically secure PHP session identifier.
+     */
+    public function create_sid(): string
+    {
+        return bin2hex(
+            random_bytes(32)
+        );
+    }
+
+    /**
+     * Returns whether a supplied session identifier already exists.
+     *
+     * PHP uses this when strict session mode validates a session ID
+     * received from a browser cookie.
+     */
+    public function validateId(string $id): bool
+    {
+        if (!$this->isValidSessionId($id)) {
+            return false;
+        }
+
+        try {
+            $statement = mysqli_prepare(
+                $this->connection,
+                'SELECT 1
+                   FROM sessions
+                  WHERE session_id = ?
+                  LIMIT 1'
+            );
+
+            mysqli_stmt_bind_param(
+                $statement,
+                's',
+                $id
+            );
+
+            mysqli_stmt_execute($statement);
+
+            $exists = mysqli_stmt_fetch(
+                $statement
+            );
+
+            mysqli_stmt_close($statement);
+
+            return $exists === true;
+        } catch (mysqli_sql_exception $exception) {
+            error_log(
+                'Unable to validate the PHP session ID in MySQL: ' .
+                $exception->getMessage()
+            );
+
+            return false;
+        }
+    }
+
     private function isValidSessionId(string $id): bool
     {
         return preg_match(
