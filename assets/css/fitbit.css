@@ -13,3 +13,69 @@
 .no-data {
     height: 200px;
 }
+
+.mobile-nav {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-nav .nav-button {
+    flex: 0 0 48px;
+    font-size: 20px;
+}
+
+.mobile-nav .date-picker {
+    flex: 0 1 60%;
+    min-width: 0;
+}
+
+.summary-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.summary-heading h4 {
+    margin-top: 0;
+}
+
+.summary-rhr {
+    white-space: nowrap;
+    font-weight: bold;
+}
+
+@media (max-width: 767px) {
+    .container-fluid {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    #setdate {
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+
+    .navbar-brand {
+        font-size: 16px;
+    }
+
+    #charts {
+        min-height: 300px;
+    }
+
+    .summary-heading {
+        align-items: center;
+    }
+
+    .table {
+        margin-bottom: 8px;
+    }
+
+    .table > thead > tr > th,
+    .table > tbody > tr > td {
+        padding: 8px 5px;
+    }
+}
