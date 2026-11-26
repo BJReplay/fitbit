@@ -6,7 +6,7 @@ It began as a Fitbit intraday heart-rate project and retains some legacy Fitbit-
 
 ## Why was this created?
 
-This project was inspired by <https://<scrubbed-url-domain>/technotablet/fitbit> by my need to track SVT that had not responded to two rounds of ablation and became more problematic post-COVID.
+This project was inspired by <https://github.com/technotablet/fitbit> by my need to track SVT that had not responded to two rounds of ablation and became more problematic post-COVID.
 
 The high-resolution heart-rate data provides a useful long-term record that can be reviewed alongside clinical care. It is not a replacement for clinical monitoring such as a Holter monitor or ECG.
 
@@ -63,8 +63,9 @@ The OAuth callback URL is derived from `WEBSITE_HOSTNAME` and ends in `/token.ph
 For a new installation, create the application tables in this order:
 
 1. `sql/default.sql` for stored heart-rate data.
-2. `sql/users.sql` for Google-authenticated application users and their Google Health identity mapping.
-3. `sql/google-oauth.sql` for encrypted per-user OAuth credentials.
+2. `sql/sessions.sql` for persistent PHP application sessions.
+3. `sql/users.sql` for Google-authenticated application users and their Google Health identity mapping.
+4. `sql/google-oauth.sql` for encrypted per-user OAuth credentials.
 
 `sql/google-oauth.sql` references the `users` table, so `sql/users.sql` must be applied first.
 
@@ -122,8 +123,10 @@ The mobile view:
 - Keeps previous-day, next-day, date-picker and refresh controls in a compact touch-friendly navigation row.
 - Returns to `mobiledata.php` after refreshing data through `getdata.php`.
 - Uses a taller Highcharts display sized specifically for a phone screen.
+- Still allows a landscape view to allow closer inspection of detailed heart rate data.
 - Shows the daily resting heart rate and heart-rate zone summary without the detailed reading table or Excel export button.
 - Includes bottom spacing for phones with on-screen navigation controls.
+- Supports touched based zoom on the chart to zoom into areas of the heart rate trace that are of interest.
 
 Mobile presentation rules are stored in `assets/css/fitbit.css`. `mobiledata.php` appends the stylesheet modification time as a query parameter so updated mobile styles are not hidden by a stale browser or installed-PWA cache.
 
@@ -145,7 +148,7 @@ Protect the application host, database, environment file and `GOOGLE_OAUTH_ENCRY
 
 ## Demo
 
-A demo of the original inspiration is available at <https://<scrubbed-url-domain>/fitbit>.
+A demo of the original inspiration is available at <https://exain.com/fitbit>.
 
 ## Licence and history
 
