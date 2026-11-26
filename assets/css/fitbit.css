@@ -67,11 +67,20 @@
     }
 
     #charts {
-        min-height: 340px;
+        min-height: 380px;
+    }
+
+    #charts + hr {
+        margin-top: 10px;
+        margin-bottom: 10px;
     }
 
     .summary-heading {
         align-items: center;
+    }
+
+    section[aria-labelledby="summary-heading"] {
+        padding-bottom: 50px;
     }
 
     .table {
