@@ -23,7 +23,11 @@
 
 .mobile-nav .nav-button {
     flex: 0 0 36px;
-    font-size: 24px;
+    width: 36px;
+    height: 34px;
+    padding: 6px;
+    font-size: 16px;
+    line-height: 20px;
 }
 
 .mobile-nav .date-picker {
@@ -49,13 +53,13 @@
 
 @media (max-width: 767px) {
     .container-fluid {
-        padding-left: 10px;
-        padding-right: 10px;
+        padding-left: 8px;
+        padding-right: 8px;
     }
 
     #setdate {
-        padding: 10px;
-        margin-bottom: 12px;
+        padding: 8px;
+        margin-bottom: 10px;
     }
 
     .navbar-brand {
@@ -63,7 +67,7 @@
     }
 
     #charts {
-        min-height: 300px;
+        min-height: 340px;
     }
 
     .summary-heading {
@@ -71,11 +75,11 @@
     }
 
     .table {
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
 
     .table > thead > tr > th,
     .table > tbody > tr > td {
-        padding: 8px 5px;
+        padding: 6px 3px;
     }
 }
