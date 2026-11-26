@@ -16,7 +16,7 @@ FROM base AS build-stage
 RUN apk add --no-cache libzip-dev unzip \
     && docker-php-ext-install zip
 
-COPY --from=composer/composer:2.11.2-bin@sha256:dc89a3717e5424a7b732a4d3aa034e5316bbc09180996d957bc2de6380a230af \
+COPY --from=composer/composer:2.11.3-bin@sha256:6949de616da9d35172659a292dd91eb7bcce80d28f5a752f3194b2fd1183dfc3 \
     /composer \
     /usr/local/bin/composer
 
