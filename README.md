@@ -6,7 +6,7 @@ It began as a Fitbit intraday heart-rate project and retains some legacy Fitbit-
 
 ## Why was this created?
 
-This project was inspired by <https://github.com/technotablet/fitbit> by my need to track SVT that had not responded to two rounds of ablation and became more problematic post-COVID.
+This project was inspired by <https://<scrubbed-url-domain>/technotablet/fitbit> by my need to track SVT that had not responded to two rounds of ablation and became more problematic post-COVID.
 
 The high-resolution heart-rate data provides a useful long-term record that can be reviewed alongside clinical care. It is not a replacement for clinical monitoring such as a Holter monitor or ECG.
 
@@ -21,6 +21,7 @@ The application was subsequently updated as the Fitbit API was replaced by Googl
 - Daily resting heart rate.
 - Heart-rate zone thresholds and minutes spent in each zone.
 - Interactive Highcharts display.
+- Installable mobile PWA with a compact, touch-friendly heart-rate view.
 - Previous-day, next-day, refresh, and Fetch and Next navigation.
 - Export of stored intraday heart-rate data to an Excel-compatible `.xls` file.
 - Persistent application sessions with separate browser logout and Google Health disconnect actions.
@@ -112,6 +113,22 @@ When connected:
 
 Application sessions use a 30-day lifetime. The browser session cookie is configured Secure, HttpOnly and SameSite=Lax.
 
+## Mobile PWA
+
+`manifest.webmanifest` defines an installable standalone PWA whose start URL is `/mobiledata.php`. Launching the installed PWA therefore opens the mobile-focused heart-rate view directly, while `data.php` remains the full desktop-oriented view.
+
+The mobile view:
+
+- Keeps previous-day, next-day, date-picker and refresh controls in a compact touch-friendly navigation row.
+- Returns to `mobiledata.php` after refreshing data through `getdata.php`.
+- Uses a taller Highcharts display sized specifically for a phone screen.
+- Shows the daily resting heart rate and heart-rate zone summary without the detailed reading table or Excel export button.
+- Includes bottom spacing for phones with on-screen navigation controls.
+
+Mobile presentation rules are stored in `assets/css/fitbit.css`. `mobiledata.php` appends the stylesheet modification time as a query parameter so updated mobile styles are not hidden by a stale browser or installed-PWA cache.
+
+If the PWA is already installed when `manifest.webmanifest` changes, reopening or reinstalling the application may be required before the platform uses the updated launch configuration.
+
 ## Content Security Policy
 
 The application serves its browser assets locally and sends a restrictive Content Security Policy from `config.php`.
@@ -128,7 +145,7 @@ Protect the application host, database, environment file and `GOOGLE_OAUTH_ENCRY
 
 ## Demo
 
-A demo of the original inspiration is available at <https://exain.com/fitbit>.
+A demo of the original inspiration is available at <https://<scrubbed-url-domain>/fitbit>.
 
 ## Licence and history
 
