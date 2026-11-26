@@ -113,7 +113,7 @@ $fitbitCssVersion = (string) filemtime(__DIR__ . '/assets/css/fitbit.css');
 		<script type="text/javascript" nonce="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
 			Highcharts.chart('charts', {
 				title: { text: 'Heart Rate' },
-				chart: { styledMode: true, zoomType: 'x', height: 320 },
+				chart: { styledMode: true, zoomType: 'x', height: 380 },
 				subtitle: { text: '<?php echo $date; ?>' },
 				xAxis: { type: 'datetime', dateTimeLabelFormats: { hour: '%I %p', minute: '%I:%M %p' }, title: { text: null } },
 				yAxis: { title: { text: 'BPM' } },
