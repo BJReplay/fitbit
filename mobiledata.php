@@ -29,6 +29,8 @@ try {
 	http_response_code(401);
 	exit('Google Health is not connected. <a href="oauth-start.php">Connect Google Health</a>');
 }
+
+$fitbitCssVersion = (string) filemtime(__DIR__ . '/assets/css/fitbit.css');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -43,7 +45,7 @@ try {
 	<link rel="stylesheet" href="/assets/css/bootstrap-datepicker-1.10.1.min.css">
 	<link rel="stylesheet" href="/assets/css/highcharts-13.1.1-local.css">
 	<link rel="stylesheet" href="/assets/css/highcharts-palette-13.1.1-local.css">
-	<link rel="stylesheet" href="/assets/css/fitbit.css">
+	<link rel="stylesheet" href="/assets/css/fitbit.css?v=<?php echo rawurlencode($fitbitCssVersion); ?>">
 	<script src="/assets/js/jquery-3.7.1.slim.min.js"></script>
 	<script src="/assets/js/bootstrap-3.3.7.min.js"></script>
 	<script src="/assets/js/highcharts-13.1.1-local.js"></script>
