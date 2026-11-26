@@ -29,20 +29,13 @@ final class MySqlSessionHandler implements SessionHandlerInterface
 
     public function close(): bool
     {
-        $released = $this->releaseLock();
-
-        try {
-            mysqli_close($this->connection);
-        } catch (Throwable $exception) {
-            error_log(
-                'Unable to close the MySQL session connection: ' .
-                $exception->getMessage()
-            );
-
-            return false;
-        }
-
-        return $released;
+        /*
+         * session_regenerate_id() can close and reopen the same handler
+         * during one request. Release the session lock here, but leave the
+         * dedicated connection open for the handler to reuse. PHP closes
+         * the connection automatically when the request ends.
+         */
+        return $this->releaseLock();
     }
 
     public function read(string $id): string|false
